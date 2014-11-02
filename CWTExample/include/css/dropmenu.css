@@ -1,0 +1,53 @@
+/*
+    Car Wash Trader
+    Example
+
+    Created on : 09-Sep-2014, 17:44:07
+    Author     : rk.el33t@gmail.com
+*/
+
+
+/* MENU LIST */
+#menu li {
+    list-style:none; 
+    float:left;
+    background: linear-gradient(to bottom, #8704ce 0%,#00174f 100%); 
+}
+
+#menu li a, #menu li a.active {
+    font-size: 15px;
+    font-weight: bold;
+    display:block;
+    color: white;
+    padding: 5px 10px;
+    margin: 1px 1px;
+    text-transform: uppercase;
+    background: linear-gradient(to bottom, #8704ce 0%,#00174f 100%);     
+    border: 1px solid white;
+}
+
+#menu li a.active {
+    color: violet;
+}
+
+#menu li a:hover {
+    background: linear-gradient(to bottom, #d204f7 0%,#00276b 100%);
+}
+
+/* SUBMENU LSIT */
+#menu li ul { 
+    position:absolute; 
+    visibility:hidden; 
+}
+
+#menu li ul li { 
+    display:inline; 
+    float:none;
+}
+
+#menu li ul li a {
+    padding: 5px 10px;
+    margin: 2px;
+    font-weight: normal;
+    background: #00174f;
+}
