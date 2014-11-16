@@ -1,0 +1,44 @@
+
+body {
+	background: $grey-light;
+}
+
+div.body {
+	@include container(980px);
+}
+
+header {
+	@include span(full last);
+	background: $purple-light;
+	height: 0;
+	padding: 2% 5% 15.5% 5%;
+	
+	img {
+		width: 24%;
+		height: auto;
+	}
+}
+
+nav {
+	@include span(full last);
+	height: 0;
+	padding-bottom: 5%;
+}
+
+section {
+	@include span(3 of 12);
+	margin-bottom: 2%;
+}
+
+article {
+	@include span(9 of 12 last);
+	background: $purple-mid;
+	padding: 2% 5%; 
+	margin-bottom: 2%;
+}
+
+footer {
+	@include span(full);
+	background: $purple-light;
+	padding: 2% 5%;
+}

@@ -1,0 +1,36 @@
+@mixin background($image, $positionY:top, $positionX:left, $size:contain, $repeat:no-repeat)
+{
+	background-image: url($image);
+	background-size: $size;
+	background-position: $positionX $positionY;
+	background-repeat: $repeat;
+}
+
+@mixin fontsize($value)
+{
+	font-size: $value + 0px;
+	@include breakpoint(0 $mobile) {
+		font-size: $value / 6 + 0vw;
+	}
+	@include breakpoint($mobile $tablet-landscape) {
+		font-size: $value / 10 + 0vw; 
+	}
+}
+
+@mixin webfonts($webfonts, $weight: normal, $style: normal) {
+	@each $webfont in $webfonts {
+		@font-face {
+			font-family: $webfont;
+			src: url('/assets/fonts/#{$webfont}.eot');
+			src: url('/assets/fonts/#{$webfont}.eot?#iefix') format('embedded-opentype'),
+			url('/assets/fonts/#{$webfont}.woff') format('woff'),
+			url('/assets/fonts/#{$webfont}.ttf') format('truetype'),
+			url('/assets/fonts/#{$webfont}.svg#ywftsvg') format('svg');
+			font-weight: $weight;
+			font-style: $style;
+		}
+		%#{$webfont}-webfont {
+			font-family: $webfont, $base-font-family;
+		}
+	}
+}

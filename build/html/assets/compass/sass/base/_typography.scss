@@ -1,0 +1,45 @@
+body {
+	@extend %montserrat-regular-webfont;
+	line-height: 1;
+	@include fontsize(14);
+	color: $grey-dark;
+	font-weight: normal;
+}
+
+h1 {
+	color: $purple-dark; 
+	@extend %montserrat-bold-webfont;
+	@include fontsize(50);
+	font-weight: normal;
+	
+	@include span(full);
+	height: 0;
+	padding: 2% 55% 15% 0%;
+	margin-bottom: 4%;
+	background: url(/assets/images/header-graphic.png) 70% 0 no-repeat;
+	background-size: contain;
+}
+
+nav {
+	margin-bottom: 2%;
+	
+	ul {
+		display: block;
+		list-style: none;
+		li {
+			display: inline-block;
+			
+			a:link, a:visited, a:active {
+				display: block;
+				padding: 10px 15px;
+				color: #000000;
+				text-decoration: none;
+				
+				&:hover, &.active {
+					background: $purple-dark;
+					color: #ffffff;
+				}
+			}
+		}
+	}
+}

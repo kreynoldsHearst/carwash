@@ -1,0 +1,1412 @@
+3.3.14 (Maptastic Maple)
+418cd6494e849c5c87baa9c84f6d18c5f0059371
+o:Sass::Tree::RootNode:@has_childrenT:@template"ÕF// Map of compass extensions that are loaded. The value will either be
+// the version of the extension or `true` if the version is unknown.
+$compass-extensions: compass-extensions() !default;
+
+// The list of browsers you want to support.
+// Defaults to all.
+$supported-browsers: browsers() !default;
+
+// The browser usage threshold for features that gracefully degrade
+// Defaults to 1 user in 1,000.
+$graceful-usage-threshold: 0.1 !default;
+
+// The browser usage threshold for features that cannot degrade gracefully
+// Defaults to 1 user in 10,000.
+$critical-usage-threshold: 0.01 !default;
+
+// Set this to true to generate comments that will explain why a prefix was included or omitted.
+$debug-browser-support: false !default;
+
+// Minimum browser versions that must be supported.
+// The keys of this map are any valid browser according to `browsers()`.
+// The values of this map are the min version that is valid for that browser
+// according to `browser-versions($browser)`
+$browser-minimum-versions: (
+  'chrome':  null,
+  'firefox': null,
+  'ie':      null,
+  'safari':  null,
+  'opera':   null
+) !default;
+
+
+// @private
+$default-capability-options: (
+  (full-support: true),
+  (partial-support: true)
+);
+
+// When a prefix in in context, but there is no current prefix
+// That context is recorded here so other prefixes can be avoided.
+$prefix-context: null;
+
+// When a prefix is in a selector or directive scope, this is set to the
+// current prefix value.  When `null`, either there is no prefix in scope
+// or the official prefix is being rendered. The `$prefix-context`
+// variable can be used to make that distinction.
+$current-prefix: null;
+
+// When in a context that only exists in a particular version
+// this variable is set to those versions.
+$current-browser-versions: ();
+
+// The legacy support CSS 2.1 Selectors.
+// Defaults to the $critical-usage-threshold.
+$css-sel2-support-threshold: $critical-usage-threshold !default;
+
+// Check if the browser is in scope given the browser support and current prefix minimums.
+@function browser-out-of-scope($browser, $version: null) {
+  @if not index($supported-browsers, $browser) {
+    @if $debug-browser-support {
+      @return "#{$browser} is not listed as a supported browser."
+    } @else {
+      @return true;
+    }
+  } @else if not ($current-prefix == null or $current-prefix == browser-prefix($browser)) {
+    @if $debug-browser-support {
+      @return "#{$browser} #{$version} is incompatible with #{$current-prefix}."
+    } @else {
+      @return true;
+    }
+  }
+  $current-range: map-get($current-browser-versions, $browser);
+  $current-min: if($current-range, nth($current-range, 1), null);
+  $current-max: if($current-range, nth($current-range, 2), null);
+  @if not ($version and $current-max) {
+    // We don't have any versions to compare
+    @return false;
+  } @else {
+    // If the version is less than the current min, it is not supported
+    $too-old: compare-browser-versions($browser, $version, $current-min) < 0;
+    $too-new: compare-browser-versions($browser, $version, $current-max) > 0;
+    @if $too-old or $too-new {
+      @if $debug-browser-support {
+        @return "The current scope only works with #{display-browser-range($browser, $current-min, $current-max)}.";
+      } @else {
+        @return true;
+      }
+    } @else {
+      @return false;
+    }
+  }
+}
+
+// Check whether the browser is supported according to the supported browsers,
+// declared minimum support and usage thresholds.
+@function support-legacy-browser($browser, $min-version, $max-version: null, $threshold: $critical-usage-threshold) {
+  @if not index($supported-browsers, $browser) {
+    @return false;
+  }
+  // Check agaist usage stats and declared minimums
+  $min-required-version: map-get($browser-minimum-versions, $browser);
+  $usage: if($max-version,
+             omitted-usage($browser, $min-version, $max-version),
+             omitted-usage($browser, $min-version));
+  @return $usage > $threshold or
+          ($min-required-version and
+           compare-browser-versions($browser, $max-version or $min-version, $min-required-version) >= 0);
+}
+
+// Include content for a legacy browser
+// Version can be a single version string or a list of versions ordered from oldest to newest.
+@mixin for-legacy-browser($browser, $min-version, $max-version: $min-version,
+                          $threshold: $critical-usage-threshold,
+                          $ranges: ($browser: $min-version $max-version)) {
+  @if not browser-out-of-scope($browser, $max-version) and
+      support-legacy-browser($browser, $min-version, $max-version, $threshold)
+  {
+    @if $debug-browser-support {
+      /* Content for #{display-browser-range($browser, $min-version, $max-version)}.
+      Min version: #{map-get($browser-minimum-versions, $browser) or unspecified}.
+      User threshold to keep: #{$threshold}%. If #{display-browser-range($browser, $min-version, $max-version)} are omitted: #{omitted-usage($browser, $min-version, $max-version)}%. */
+    }
+    @include with-browser-ranges(intersect-browser-ranges($current-browser-versions, $ranges)) {
+      @content;
+    }
+  } @else if $debug-browser-support and browser-out-of-scope($browser, $max-version) {
+    /* Content for #{display-browser-range($browser, $min-version, $max-version)} omitted.
+       Not allowed in the current scope: #{browser-out-of-scope($browser, $max-version)} */
+  } @else if $debug-browser-support and not
+             support-legacy-browser($browser, $min-version, $max-version, $threshold) {
+    @if omitted-usage($browser, $min-version, $max-version) > $threshold {
+      /* Content for #{display-browser-range($browser, $min-version, $max-version)} omitted.
+         User threshold to keep: #{$threshold}%. If #{display-browser-range($browser, $min-version, $max-version)} and below are omitted: #{omitted-usage($browser, $min-version, $max-version)}%. */
+    } @else {
+      /* Content for #{display-browser-range($browser, $min-version, $max-version)} omitted.
+         Minimum support is #{map-get($browser-minimum-versions, $browser)}. */
+    }
+  }
+}
+
+@function display-browser-range($browser, $min-version, $max-version: $min-version) {
+  @return "#{unquote($browser)} #{unquote($min-version)}#{if($max-version != $min-version, unquote(' -') unquote($max-version), null)}";
+}
+
+
+// Renders the content once if any of the legacy browsers are supported.
+// $browsers is a map of browser name to version ranges
+@mixin for-legacy-browsers($browsers, $threshold: $critical-usage-threshold) {
+  $rendered: false;
+  @each $browser, $range in $browsers {
+    @if not $rendered {
+      @include for-legacy-browser($browser, $range..., $threshold: $threshold, $ranges: $browsers) {
+        $rendered: true;
+        @content;
+      }
+    }
+  }
+}
+
+// If there's a prefix context in scope, this will only output the content if the prefix matches.
+// Otherwise, sets the current prefix scope and outputs the content.
+@mixin with-prefix($prefix) {
+  @if $current-prefix or $prefix-context {
+    @if $current-prefix == $prefix or $prefix-context == $prefix {
+      @if $debug-browser-support {
+        @if $prefix {
+          /* content for #{$prefix} because #{$current-prefix or $prefix-context} is already in scope. */
+        } @else {
+          /* unprefixed content. #{$current-prefix or $prefix-context} is already in scope. */
+        }
+      }
+      $old-prefix-context: $prefix-context;
+      $old-prefix: $current-prefix;
+      $prefix-context: $prefix-context or $current-prefix !global;
+      $current-prefix: $prefix !global;
+      @content;
+      $prefix-context: $old-prefix-context !global;
+      $current-prefix: $old-prefix !global;
+    } @else if $prefix == null {
+      $old-prefix-context: $prefix-context;
+      $prefix-context: $prefix-context or $current-prefix !global;
+      $current-prefix: null !global;
+      @if $debug-browser-support {
+        /* Content for official syntax. Prefix context is still #{$prefix-context}. */
+      }
+      @content;
+      $current-prefix: $prefix-context !global;
+      $prefix-context: $old-prefix-context !global;
+    } @else if $debug-browser-support {
+      /* Omitting content for #{$prefix} because #{$current-prefix} is already in scope. */
+    }
+  } @else {
+    @if $debug-browser-support and $prefix {
+      /* Creating new #{$prefix} context. */
+    }
+    $prefix-context: $prefix !global;
+    $current-prefix: $prefix !global;
+    @content;
+    $current-prefix: null !global;
+    $prefix-context: null !global;
+  }
+}
+
+@function prefixes-for-capability($capability, $threshold, $capability-options: $default-capability-options) {
+  $result: ();
+  @each $prefix in browser-prefixes($supported-browsers) {
+    $result: map-merge($result,
+                      ($prefix: use-prefix($prefix, $capability, $threshold, $capability-options)));
+  }
+  @return $result;
+}
+
+// Yields to the mixin content once for each prefix required.
+// The current prefix is set to the $current-prefix global for use by the included content.
+// Also yields to the content once with $current-prefix set to null for the official version
+// as long as there's not already a prefix in scope.
+@mixin with-each-prefix($capability, $threshold, $capability-options: $default-capability-options) {
+  @each $prefix, $should-use-prefix in prefixes-for-capability($capability, $threshold, $capability-options) {
+    @if $should-use-prefix {
+      @if $debug-browser-support and type-of($should-use-prefix) == list {
+        /* Capability #{$capability} is prefixed with #{$prefix} because #{$should-use-prefix} is required. */
+      } @else if $debug-browser-support and type-of($should-use-prefix) == number {
+        /* Capability #{$capability} is prefixed with #{$prefix} because #{$should-use-prefix}% of users need it which is more than the threshold of #{$threshold}%. */
+      }
+      @include with-prefix($prefix) {
+        @include with-browser-ranges($capability) {
+          @content;
+        }
+      }
+    } @else if $debug-browser-support {
+      /* Capability #{$capability} is not prefixed with #{$prefix} because #{prefix-usage($prefix, $capability, $capability-options)}% of users are affected which is less than the threshold of #{$threshold}. */
+    }
+  }
+  @include with-prefix(null) {
+    @include with-browser-ranges($capability) {
+      @content;
+    }
+  }
+}
+
+// Returns true if at least one browser-version pair in $subset-ranges
+// is a higher (or same) version than the browser-version pairs in
+// $ranges.
+@function has-browser-subset($ranges, $subset-ranges) {
+  $found-mismatch: false;
+  @each $browser, $subset-range in $subset-ranges {
+    $range: map-get($ranges, $browser);
+    @if $range {
+      $min-1: nth($subset-range, 1);
+      $max-1: nth($subset-range, 2);
+      $min-2: nth($range, 1);
+      $max-2: nth($range, 2);
+      @if (compare-browser-versions($browser, $min-2, $min-1) <= 0 and
+           compare-browser-versions($browser, $min-1, $max-2) <= 0) or
+          (compare-browser-versions($browser, $min-2, $max-1) <= 0 and
+           compare-browser-versions($browser, $max-1, $max-2) <= 0) or
+          (compare-browser-versions($browser, $min-1, $min-2) <= 0 and
+           compare-browser-versions($browser, $max-1, $max-2) >= 0) or
+          (compare-browser-versions($browser, $min-1, $min-2) >= 0 and
+           compare-browser-versions($browser, $max-1, $max-2) <= 0) {
+        @return true;
+      } @else {
+        $found-mismatch: true
+      }
+    }
+  }
+  @return not $found-mismatch;
+}
+
+// When the same browser is in both maps, then the minimum will be set
+// to the maximum of the two minimum versions, and the maximum will be
+// set to the minmum of the two maximum versions.
+@function intersect-browser-ranges($ranges, $new-ranges) {
+  @each $browser, $new-range in $new-ranges {
+    $old-range: map-get($ranges, $browser);
+    @if $old-range {
+      $old-min: nth($old-range, 1);
+      $old-max: nth($old-range, 2);
+      $new-min: nth($new-range, 1);
+      $new-max: nth($new-range, 2);
+      $maximin: if(compare-browser-versions($browser, $old-min, $new-min) > 0,
+                   $old-min, $new-min);
+      $minimax: if(compare-browser-versions($browser, $old-max, $new-max) < 0,
+                   $old-max, $new-max);
+      $ranges: map-merge($ranges, ($browser: $maximin $minimax));
+    } @else {
+      $ranges: map-merge($ranges, ($browser: $new-range));
+    }
+  }
+  @return $ranges;
+}
+
+// If passed a map, that will be the new browser ranges.
+// Otherwise a range map will be created based on the given capability and prefix
+// using the `browser-ranges($capability, $prefix)` function.
+//
+// If there are current ranges in scope and the new ranges have some overlap
+// with the current, 
+//
+// If there is no overlap, then the content will not be rendered.
+@mixin with-browser-ranges($capability, $prefix: $current-prefix) {
+  $new-ranges: null;
+  @if type-of($capability) == map {
+    $new-ranges: $capability;
+  } @else {
+    $new-ranges: browser-ranges($capability, $prefix);
+  }
+
+  @if has-browser-subset($current-browser-versions, $new-ranges) {
+    $old-ranges: $current-browser-versions;
+    $current-browser-versions: intersect-browser-ranges($old-ranges, $new-ranges) !global;
+    @content;
+    $current-browser-versions: $old-ranges !global;
+  } @else if $debug-browser-support {
+    /* Excluding content because #{inspect($new-ranges)} is not included within
+       #{inspect($current-browser-versions)} */
+  }
+}
+
+// Returns true if the prefixed usage stats for the capability exceed the threshold
+// or if the minimum version for a supported browser would require a prefix for the capability.
+@function use-prefix($prefix, $capability, $threshold, $capability-options: $default-capability-options) {
+  $usage: prefix-usage($prefix, $capability, $capability-options);
+  @if $usage > $threshold {
+    @return $usage;
+  } @else {
+    @each $browser in browsers($prefix) {
+      @if index($supported-browsers, $browser) {
+        $min-version: map-get($browser-minimum-versions, $browser);
+        @if $min-version {
+          $actual-prefix: browser-requires-prefix($browser, $min-version, $capability, $capability-options);
+          @if $actual-prefix and $prefix == $actual-prefix {
+            @return $browser $min-version;
+          }
+        }
+      }
+    }
+  }
+  @return false;
+}
+
+@function prefix-identifier($ident, $prefix: $current-prefix) {
+  @return unquote("#{$prefix}#{if($prefix, '-', null)}#{$ident}");
+}
+
+// Output a property and value using the current prefix.
+// It will be unprefixed if $current-prefix is null.
+@mixin prefix-prop($property, $value, $prefix: $current-prefix) {
+  #{prefix-identifier($property, $prefix)}: $value;
+}
+
+// Emit a set of properties with the prefix governed by the capability and usage threshold given.
+//
+// Example:
+//
+//     @include prefixed-properties(css-animation, $animation-support-threshold,
+//       (animation-name: foo, animation-duration: 2s)
+//     );
+@mixin prefixed-properties($capability, $threshold, $properties, $capability-options: $default-capability-options) {
+  @include with-each-prefix($capability, $threshold, $capability-options) {
+    @each $prop, $value in $properties {
+      @include prefix-prop($prop, $value);
+    }
+  }
+}
+
+
+// @private
+@function warn-about-old-variables() {
+  $old-variables-in-use: ();
+  @each $old-variable-name in
+        (legacy-support-for-ie, legacy-support-for-ie6, legacy-support-for-ie7,
+         legacy-support-for-ie8, legacy-support-for-mozilla, legacy-support-for-webkit,
+         experimental-support-for-mozilla, experimental-support-for-webkit,
+         experimental-support-for-opera, experimental-support-for-microsoft,
+         experimental-support-for-khtml, experimental-support-for-svg)
+  {
+    @if global-variable-exists($old-variable-name) {
+      $old-variables-in-use: append($old-variables-in-use,
+                                    unquote("$#{$old-variable-name}"), comma);
+    }
+  }
+  @if length($old-variables-in-use) > 0 {
+    @warn "Compass has changed how browser support is configured. " +
+          "The following configuration variables " +
+          "are no longer supported: #{$old-variables-in-use}." +
+          "Details: http://compass-style.org/help/documentation/tuning-vendor-prefixes/"
+  }
+  @return $old-variables-in-use;
+}
+
+// @private
+@function warn-about-pie-removal() {
+  @if global-variable-exists(experimental-support-for-pie) {
+    @warn "Compass no longer supports css3pie.";
+  }
+  @return true;
+}
+
+// Enable browser support debugging within the content block.
+// Or you can enable it for the whole stylesheet by setting `$debug-browser-support` to true.
+@mixin with-browser-support-debugging {
+  $current-status: $debug-browser-support;
+  $debug-browser-support: true !global;
+  @content;
+  $debug-browser-support: $current-status !global;
+}
+
+// Set a default value if the given arglist is empty
+@function set-arglist-default($arglist, $default) {
+  $default-index: index($arglist, default);
+  @if $default-index {
+    $arglist: set-nth($arglist, $default-index, $default)
+  }
+  @return if(length($arglist) > 0, $arglist, $default);
+}
+
+
+// @private
+$old-variable-warnings-issued: warn-about-old-variables() !default;
+
+// @private
+$pie-removal-warning-issued: warn-about-pie-removal() !default;
+
+// @private
+@function warn-about-useless-prefix-arguments($moz: null, $webkit: null, $o: null, $khtml: null, $official: null) {
+  @if $moz != null or $webkit != null or $o != null or $khtml != null or $official != null {
+    @warn "Browser prefix arguments to this mixin are no longer used and " +
+          "will be removed in the next release.";
+  }
+  @return true;
+}
+
+// coerce a list to be comma delimited or make a new, empty comma delimited list.
+@function comma-list($list: ()) {
+  @return join((), $list, comma);
+}
+
+// @private Returns the legacy value for a given box-model
+// - Used by background-clip and -origin.
+@function legacy-box($box) {
+  $box: unquote($box);
+  @if $box == padding-box { $box: padding; }
+  @if $box == border-box { $box: border; }
+  @if $box == content-box { $box: content; }
+  @return $box;
+}
+:
+@linei:@options{ :@children[Ho:Sass::Tree::CommentNode
+:
+@type:silent;i;	@;
+[ :@value["é/* Map of compass extensions that are loaded. The value will either be
+ * the version of the extension or `true` if the version is unknown. */o:Sass::Tree::VariableNode:
+@expro: Sass::Script::Tree::Funcall:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:@splat0:
+@name"compass-extensions;i:@kwarg_splat0;	@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i:@offseti/:@start_poso; ;i;!i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[ ;"compass-extensions;i;	@;
+[ :@global0;o;	;@;o; ;i;!i8;"o; ;i;!i;#@:@guardedTo;
+;;;i
+;	@;
+[ ;["H/* The list of browsers you want to support.
+ * Defaults to all. */o;;o;;@;0;"browsers;i;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;i;!i%;"o; ;i;!i;#@;)[ ;"supported-browsers;i;	@;
+[ ;*0;o;	;@;o; ;i;!i.;"o; ;i;!i;#@;+To;
+;;;i;	@;
+[ ;["k/* The browser usage threshold for features that gracefully degrade
+ * Defaults to 1 user in 1,000. */o;;o: Sass::Script::Tree::Literal	;@;i;o;	;@;o; ;i;!i$;"o; ;i;!i!;#@;o: Sass::Script::Value::Number
+;	@:@original"0.1:@denominator_units[ :@numerator_units[ ;f0.10000000000000001 ôö;"graceful-usage-threshold;i;	@;
+[ ;*0;o;	;@;o; ;i;!i-;"o; ;i;!i;#@;+To;
+;;;i;	@;
+[ ;["s/* The browser usage threshold for features that cannot degrade gracefully
+ * Defaults to 1 user in 10,000. */o;;o;,	;@;i;o;	;@;o; ;i;!i%;"o; ;i;!i!;#@;o;-
+;	@;."	0.01;/@A;0[ ;f0.01 {;"critical-usage-threshold;i;	@;
+[ ;*0;o;	;@;o; ;i;!i.;"o; ;i;!i;#@;+To;
+;;;i;	@;
+[ ;["h/* Set this to true to generate comments that will explain why a prefix was included or omitted. */o;;o;,	;@;i;o;	;@;o; ;i;!i#;"o; ;i;!i;#@;o:Sass::Script::Value::Bool;	@;F;"debug-browser-support;i;	@;
+[ ;*0;o;	;@;o; ;i;!i,;"o; ;i;!i;#@;+To;
+;;;i;	@;
+[ ;["˘/* Minimum browser versions that must be supported.
+ * The keys of this map are any valid browser according to `browsers()`.
+ * The values of this map are the min version that is valid for that browser
+ * according to `browser-versions($browser)` */o;;o:#Sass::Script::Tree::MapLiteral
+;@;i;	@;o;	;@;o; ;i;!i;"o; ;i;!i";#@:@pairs[
+[o;,	;@;i;o;	;@;o; ;i;!i;"o; ;i;!i;#@;o: Sass::Script::Value::String;:string;	@;"chromeo;,	;@;i;o;	;@;o; ;i;!i;"o; ;i;!i;#@;o:Sass::Script::Value::Null;	@;0[o;,	;@;i;o;	;@;o; ;i;!i;"o; ;i;!i;#@;o;4;;5;	@;"firefoxo;,	;@;i;o;	;@;o; ;i;!i;"o; ;i;!i;#@;@[o;,	;@;i ;o;	;@;o; ;i ;!i;"o; ;i ;!i;#@;o;4;;5;	@;"ieo;,	;@;i ;o;	;@;o; ;i ;!i;"o; ;i ;!i;#@;@[o;,	;@;i!;o;	;@;o; ;i!;!i;"o; ;i!;!i;#@;o;4;;5;	@;"safario;,	;@;i!;o;	;@;o; ;i!;!i;"o; ;i!;!i;#@;@[o;,	;@;i";o;	;@;o; ;i";!i;"o; ;i";!i;#@;o;4;;5;	@;"
+operao;,	;@;i";o;	;@;o; ;i";!i;"o; ;i";!i;#@;@;"browser-minimum-versions;i;	@;
+[ ;*0;o;	;@;o; ;i#;!i;"o; ;i;!i;#@;+To;
+;;;i&;	@;
+[ ;["/* @private */o;;o:$Sass::Script::Tree::ListLiteral;@;i';	@:@separator:
+comma;o;	;@;o; ;i(;!i;"o; ;i';!i$;#@:@elements[o;2
+;@;i(;	@;o;	;@;o; ;i(;!i;"o; ;i(;!i	;#@;3[[o;,	;@;i(;o;	;@;o; ;i(;!i;"o; ;i(;!i	;#@;o;4;:identifier;	@;"full-supporto;,	;@;i(;o;	;@;o; ;i(;!i;"o; ;i(;!i;#@;o;1;	@;To;2
+;@;i);	@;o;	;@;o; ;i);!i;"o; ;i);!i	;#@;3[[o;,	;@;i);o;	;@;o; ;i);!i;"o; ;i);!i	;#@;o;4;;;;	@;"partial-supporto;,	;@;i);o;	;@;o; ;i);!i;"o; ;i);!i;#@;@∆;"default-capability-options;i';	@;
+[ ;*0;o;	;@;o; ;i*;!i;"o; ;i';!i;#@;+0o;
+;;;i,;	@;
+[ ;["Ñ/* When a prefix in in context, but there is no current prefix
+ * That context is recorded here so other prefixes can be avoided. */o;;o;,	;@;i.;o;	;@;o; ;i.;!i;"o; ;i.;!i;#@;@;"prefix-context;i.;	@;
+[ ;*0;o;	;@;o; ;i.;!i;"o; ;i.;!i;#@;+0o;
+;;;i0;	@;
+[ ;["
+/* When a prefix is in a selector or directive scope, this is set to the
+ * current prefix value.  When `null`, either there is no prefix in scope
+ * or the official prefix is being rendered. The `$prefix-context`
+ * variable can be used to make that distinction. */o;;o;,	;@;i4;o;	;@;o; ;i4;!i;"o; ;i4;!i;#@;@;"current-prefix;i4;	@;
+[ ;*0;o;	;@;o; ;i4;!i;"o; ;i4;!i;#@;+0o;
+;;;i6;	@;
+[ ;["p/* When in a context that only exists in a particular version
+ * this variable is set to those versions. */o;;o;7;@;i8;	@;80;o;	;@;o; ;i8;!i";"o; ;i8;!i";#@;:[ ;"current-browser-versions;i8;	@;
+[ ;*0;o;	;@;o; ;i8;!i#;"o; ;i8;!i;#@;+0o;
+;;;i:;	@;
+[ ;["^/* The legacy support CSS 2.1 Selectors.
+ * Defaults to the $critical-usage-threshold. */o;;o:!Sass::Script::Tree::Variable;@;"critical-usage-threshold;i<;	@:@underscored_name"critical_usage_threshold;o;	;@;o; ;i<;!i<;"o; ;i<;!i#;#@;"css-sel2-support-threshold;i<;	@;
+[ ;*0;o;	;@;o; ;i<;!iE;"o; ;i<;!i;#@;+To;
+;;;i>;	@;
+[ ;["b/* Check if the browser is in scope given the browser support and current prefix minimums. */o:Sass::Tree::FunctionNode;T;0;"browser-out-of-scope;i?;	@;
+[
+u:Sass::Tree::IfNodef[o:'Sass::Script::Tree::UnaryOperation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei@:@options{ :@operando: Sass::Script::Tree::Funcall;@:@splat0:
+@name"
+index;i@:@kwarg_splat0;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i@:@offseti4:@start_poso;;i@;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[o:!Sass::Script::Tree::Variable;@;"supported-browsers;i@;@:@underscored_name"supported_browsers;o;	;@;o;;i@;i);o;;i@;i;@o;";@;"browser;i@;@;#"browser;o;	;@;o;;i@;i3;o;;i@;i+;@;o;	;@;o;;i@;i4;o;;i@;i;@:@operator:notu:Sass::Tree::IfNodeZ[o:'Sass::Script::Tree::UnaryOperation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineiF:@options{ :@operando:"Sass::Script::Tree::Operation;@;iF;@:@operand2o;
+;@;iF;@;o: Sass::Script::Tree::Funcall;@:@splat0:
+@name"browser-prefix;iF:@kwarg_splat0;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iF:@offseti^:@start_poso;;iF;iF:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[o:!Sass::Script::Tree::Variable;@;"browser;iF;@:@underscored_name"browser;o;	;@;o;;iF;i];o;;iF;iU;@;o;	;@;o;;iF;i^;o;;iF;i3;@:@operator:eq:@operand1o;$;@;"current-prefix;iF;@;%"current_prefix;o;	;@;o;;iF;iB;@!;@;o;	;@;o;;iF;i^;o;;iF;i;@;&:or;(o;
+;@;iF;@;o: Sass::Script::Tree::Literal	;@;iF;o;	;@;o;;iF;i/;o;;iF;i+;@:@valueo:Sass::Script::Value::Null;@;+0;o;	;@;o;;iF;i0;@);@;&;';(o;$;@;"current-prefix;iF;@;%"current_prefix;o;	;@;o;;iF;i';@);@;o;	;@;o;;iF;i_;o;;iF;i;@;&:not0[u:Sass::Tree::IfNode¸[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"debug-browser-support:
+@lineiG:@options{ :@underscored_name"debug_browser_support:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iG:@offseti$:@start_poso;;iG;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheetsu:Sass::Tree::IfNode7[00[o:Sass::Tree::ReturnNode
+:
+@expro: Sass::Script::Tree::Literal	:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineiJ:@source_rangeo:Sass::Source::Range	:
+@file@	:@end_poso:Sass::Source::Position;	iJ:@offseti:@start_poso;;	iJ;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo:Sass::Script::Value::Bool:@options{ ;T;	iJ;@:@children[ ;
+o;	;@	;o;;	iJ;i;o;;	iJ;i;@[o:Sass::Tree::ReturnNode
+:
+@expro:,Sass::Script::Tree::StringInterpolation;@:@aftero;;@;o;;@;o: Sass::Script::Tree::Literal	;@;iH;o;	;@;o;;iH;iV;o;;iH;iT;@:@valueo: Sass::Script::Value::String:
+@type:string;	@	;".;iH;	@	:	@mido; ;@;"current-prefix;iH;	@	;
+"current_prefix;o;	;@;o;;iH;iS;o;;iH;iD;@:@beforeo;	;@;iH;o;	;@;o;;iH;iB;o;;iH;i,;@;o;; ;!;	@	;" is incompatible with ;o;	;@;o;;iI;i
+;@';@;iH;	@	;"o; ;@;"version;iH;	@	;
+"version;o;	;@;o;;iH;i+;o;;iH;i#;@;#o;	;@;iH;o;	;@;o;;iH;i!;o;;iH;i ;@;o;; ;!;	@	;" ;o;	;@;o;;iI;i
+;@5;@;iH;	@	;"o; ;@;"browser;iH;	@	;
+"browser;o;	;@;o;;iH;i;o;;iH;i;@;#o;	;@;iH;o;	;@;o;;iH;i;o;;iH;i;@;o;; ;!;	@	;" ;o;	;@;o;;iI;i
+;@C;@;iH;	@	:@children[ ;o;	;@;o;;iI;i
+;o;;iH;i;@[u;&`[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"debug-browser-support:
+@lineiA:@options{ :@underscored_name"debug_browser_support:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iA:@offseti$:@start_poso;;iA;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheetsu:Sass::Tree::IfNode7[00[o:Sass::Tree::ReturnNode
+:
+@expro: Sass::Script::Tree::Literal	:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineiD:@source_rangeo:Sass::Source::Range	:
+@file@	:@end_poso:Sass::Source::Position;	iD:@offseti:@start_poso;;	iD;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo:Sass::Script::Value::Bool:@options{ ;T;	iD;@:@children[ ;
+o;	;@	;o;;	iD;i;o;;	iD;i;@[o:Sass::Tree::ReturnNode
+:
+@expro:,Sass::Script::Tree::StringInterpolation;@:@aftero: Sass::Script::Tree::Literal	;@;iB;o;	;@;o;;iB;iG;o;;iB;i ;@:@valueo: Sass::Script::Value::String:
+@type:string;	@	;"+ is not listed as a supported browser.;iB;	@	:	@mido; ;@;"browser;iB;	@	;
+"browser;o;	;@;o;;iB;i;o;;iB;i;@:@beforeo;	;@;iB;o;	;@;o;;iB;i;o;;iB;i;@;o;; ;!;	@	;" ;o;	;@;o;;iC;i
+;@%;@;iB;	@	:@children[ ;o;	;@;o;;iC;i
+;o;;iB;i;@o;;o;;@;0;"map-get;iM;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iM;!iD;"o; ;iM;!i;#@;)[o;<;@;"current-browser-versions;iM;	@;="current_browser_versions;o;	;@;o; ;iM;!i9;"o; ;iM;!i ;#@o;<;@;"browser;iM;	@;="browser;o;	;@;o; ;iM;!iC;"o; ;iM;!i;;#@;"current-range;iM;	@;
+[ ;*0;o;	;@;o; ;iM;!iD;"o; ;iM;!i	;#@;+0o;;o;;@;0;"if;iN;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iN;!iF;"o; ;iN;!i;#@;)[o;<;@;"current-range;iN;	@;="current_range;o;	;@;o; ;iN;!i';"o; ;iN;!i;#@o;;@;0;"nth;iN;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iN;!i?;"o; ;iN;!i);#@;)[o;<;@;"current-range;iN;	@;="current_range;o;	;@;o; ;iN;!i;;"o; ;iN;!i-;#@o;,	;@;iN;o;	;@;o; ;iN;!i>;"o; ;iN;!i=;#@;o;-
+;	@;."1;/@A;0[ ;io;,	;@;iN;o;	;@;o; ;iN;!iE;"o; ;iN;!iA;#@;@;"current-min;iN;	@;
+[ ;*0;o;	;@;o; ;iN;!iF;"o; ;iN;!i	;#@;+0o;;o;;@;0;"if;iO;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iO;!iF;"o; ;iO;!i;#@;)[o;<;@;"current-range;iO;	@;="current_range;o;	;@;o; ;iO;!i';"o; ;iO;!i;#@o;;@;0;"nth;iO;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iO;!i?;"o; ;iO;!i);#@;)[o;<;@;"current-range;iO;	@;="current_range;o;	;@;o; ;iO;!i;;"o; ;iO;!i-;#@o;,	;@;iO;o;	;@;o; ;iO;!i>;"o; ;iO;!i=;#@;o;-
+;	@;."2;/@A;0[ ;io;,	;@;iO;o;	;@;o; ;iO;!iE;"o; ;iO;!iA;#@;@;"current-max;iO;	@;
+[ ;*0;o;	;@;o; ;iO;!iF;"o; ;iO;!i	;#@;+0u;?P[o:'Sass::Script::Tree::UnaryOperation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineiP:@options{ :@operando:"Sass::Script::Tree::Operation;@;iP;@:@operand2o:!Sass::Script::Tree::Variable;@:
+@name"current-max;iP;@:@underscored_name"current_max:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iP:@offseti*:@start_poso;;iP;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets;o;	;@;o;;iP;i*;o;;iP;i;@:@operator:and:@operand1o;;@;"version;iP;@;"version;o;	;@;o;;iP;i;@;@;o;	;@;o;;iP;i+;o;;iP;i;@;:notu:Sass::Tree::IfNode‚[00[	o:Sass::Tree::CommentNode
+:
+@type:silent:
+@lineiT:@options{ :@children[ :@value["K/* If the version is less than the current min, it is not supported */o:Sass::Tree::VariableNode:
+@expro:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss;iU;	@:@operand2o: Sass::Script::Tree::Literal	;@;iU:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iU:@offsetiR:@start_poso;;iU;iQ:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets;o: Sass::Script::Value::Number
+;	@:@original"0:@denominator_units[ :@numerator_units[ ;i ;o;	;@;o;;iU;iR;o;;iU;i;@:@operator:lt:@operand1o: Sass::Script::Tree::Funcall;@:@splat0:
+@name"compare-browser-versions;iU:@kwarg_splat0;	@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;iU;iN;@;@:
+@args[o:!Sass::Script::Tree::Variable;@;("browser;iU;	@:@underscored_name"browser;o;	;@;o;;iU;i5;o;;iU;i-;@o;1;@;("version;iU;	@;2"version;o;	;@;o;;iU;i?;o;;iU;i7;@o;1;@;("current-min;iU;	@;2"current_min;o;	;@;o;;iU;iM;o;;iU;iA;@;("too-old;iU;	@;
+[ :@global0;o;	;@;o;;iU;iR;o;;iU;i;@:@guarded0o;;o;;@;iV;	@;o;	;@;iV;o;	;@;o;;iV;iR;o;;iV;iQ;@;o;
+;	@; "0;!@;"[ ;i ;o;	;@;o;;iV;iR;o;;iV;i;@;#:gt;%o;&;@;'0;("compare-browser-versions;iV;)0;	@;*o;+;,{ ;-IC;.{ ;/[ ;o;	;@;o;;iV;iN;@I;@;0[o;1;@;("browser;iV;	@;2"browser;o;	;@;o;;iV;i5;o;;iV;i-;@o;1;@;("version;iV;	@;2"version;o;	;@;o;;iV;i?;o;;iV;i7;@o;1;@;("current-max;iV;	@;2"current_max;o;	;@;o;;iV;iM;o;;iV;iA;@;("too-new;iV;	@;
+[ ;30;o;	;@;o;;iV;iR;o;;iV;i;@;40u:Sass::Tree::IfNodeÊ[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineiW:@options{ :@operand2o:!Sass::Script::Tree::Variable;@:
+@name"too-new;iW;@:@underscored_name"too_new:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iW:@offseti":@start_poso;;iW;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets;o;	;@;o;;iW;i#;o;;iW;i;@:@operator:or:@operand1o;
+;@;"too-old;iW;@;"too_old;o;	;@;o;;iW;i;@;@u:Sass::Tree::IfNode7[00[o:Sass::Tree::ReturnNode
+:
+@expro: Sass::Script::Tree::Literal	:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei^:@source_rangeo:Sass::Source::Range	:
+@file@	:@end_poso:Sass::Source::Position;	i^:@offseti:@start_poso;;	i^;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo:Sass::Script::Value::Bool:@options{ ;F;	i^;@:@children[ ;
+o;	;@	;o;;	i^;i;o;;	i^;i;@[u;ı[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"debug-browser-support:
+@lineiX:@options{ :@underscored_name"debug_browser_support:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iX:@offseti&:@start_poso;;iX;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheetsu:Sass::Tree::IfNode7[00[o:Sass::Tree::ReturnNode
+:
+@expro: Sass::Script::Tree::Literal	:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei[:@source_rangeo:Sass::Source::Range	:
+@file@	:@end_poso:Sass::Source::Position;	i[:@offseti:@start_poso;;	i[;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo:Sass::Script::Value::Bool:@options{ ;T;	i[;@:@children[ ;
+o;	;@	;o;;	i[;i;o;;	i[;i;@[o:Sass::Tree::ReturnNode
+:
+@expro:,Sass::Script::Tree::StringInterpolation;@:@aftero: Sass::Script::Tree::Literal	;@;iY;o;	;@;o;;iY;iy;o;;iY;iw;@:@valueo: Sass::Script::Value::String:
+@type:string;	@	;".;iY;	@	:	@mido: Sass::Script::Tree::Funcall;@:@splat0;"display-browser-range;iY:@kwarg_splat0;	@	:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;iY;iv;o;;iY;i;;@:
+@args[o; ;@;"browser;iY;	@	;
+"browser;o;	;@;o;;iY;iY;o;;iY;iQ;@o; ;@;"current-min;iY;	@	;
+"current_min;o;	;@;o;;iY;ig;o;;iY;i[;@o; ;@;"current-max;iY;	@	;
+"current_max;o;	;@;o;;iY;iu;o;;iY;ii;@:@beforeo;	;@;iY;o;	;@;o;;iY;i9;o;;iY;i;@;o;; ;!;	@	;"'The current scope only works with ;o;	;@;o;;iY;iy;@;;@;iY;	@	:@children[ ;o;	;@;o;;iY;iy;o;;iY;i;@[o:Sass::Tree::CommentNode
+:
+@type:silent;iQ;@:@children[ :@value["0/* We don't have any versions to compare */o:Sass::Tree::ReturnNode
+:
+@expro: Sass::Script::Tree::Literal	;@;iR;o;	;@;o;;iR;i;o;;iR;i;@;%o:Sass::Script::Value::Bool;@;%F;iR;@;$[ ;o;	;@;o;;iR;i;o;;iR;i
+;@;o;	;@;o; ;i?;!i?;"o; ;i?;!i;#@;)[[o;<;@;"browser;i?;	@;="browser;o;	;@;o; ;i?;!i-;"o; ;i?;!i%;#@0[o;<;@;"version;i?;	@;="version;o;	;@;o; ;i?;!i7;"o; ;i?;!i/;#@o;,	;@;i?;o;	;@;o; ;i?;!i=;"o; ;i?;!i9;#@;@o;
+;;;ic;	@;
+[ ;["É/* Check whether the browser is supported according to the supported browsers,
+ * declared minimum support and usage thresholds. */o;>;T;0;"support-legacy-browser;ie;	@;
+[
+u;?l[o:'Sass::Script::Tree::UnaryOperation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineif:@options{ :@operando: Sass::Script::Tree::Funcall;@:@splat0:
+@name"
+index;if:@kwarg_splat0;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;if:@offseti4:@start_poso;;if;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[o:!Sass::Script::Tree::Variable;@;"supported-browsers;if;@:@underscored_name"supported_browsers;o;	;@;o;;if;i);o;;if;i;@o;";@;"browser;if;@;#"browser;o;	;@;o;;if;i3;o;;if;i+;@;o;	;@;o;;if;i4;o;;if;i;@:@operator:not0[o:Sass::Tree::ReturnNode
+:
+@expro: Sass::Script::Tree::Literal	;@;ig;o;	;@;o;;ig;i;o;;ig;i;@:@valueo:Sass::Script::Value::Bool;@;)F;ig;@:@children[ ;o;	;@;o;;ig;i;o;;ig;i
+;@o;
+;;;ii;	@;
+[ ;["9/* Check agaist usage stats and declared minimums */o;;o;;@;0;"map-get;ij;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;ij;!iK;"o; ;ij;!i;#@;)[o;<;@;"browser-minimum-versions;ij;	@;="browser_minimum_versions;o;	;@;o; ;ij;!i@;"o; ;ij;!i';#@o;<;@;"browser;ij;	@;="browser;o;	;@;o; ;ij;!iJ;"o; ;ij;!iB;#@;"min-required-version;ij;	@;
+[ ;*0;o;	;@;o; ;ij;!iK;"o; ;ij;!i	;#@;+0o;;o;;@;0;"if;ik;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;im;!i9;"o; ;ik;!i;#@;)[o;<;@;"max-version;ik;	@;="max_version;o;	;@;o; ;ik;!i;"o; ;ik;!i;#@o;;@;0;"omitted-usage;il;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;il;!iF;"o; ;il;!i;#@;)[o;<;@;"browser;il;	@;="browser;o;	;@;o; ;il;!i);"o; ;il;!i!;#@o;<;@;"min-version;il;	@;="min_version;o;	;@;o; ;il;!i7;"o; ;il;!i+;#@o;<;@;"max-version;il;	@;="max_version;o;	;@;o; ;il;!iE;"o; ;il;!i9;#@o;;@;0;"omitted-usage;im;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;im;!i8;"o; ;im;!i;#@;)[o;<;@;"browser;im;	@;="browser;o;	;@;o; ;im;!i);"o; ;im;!i!;#@o;<;@;"min-version;im;	@;="min_version;o;	;@;o; ;im;!i7;"o; ;im;!i+;#@;"
+usage;ik;	@;
+[ ;*0;o;	;@;o; ;im;!i9;"o; ;ik;!i	;#@;+0o:Sass::Tree::ReturnNode
+;o:"Sass::Script::Tree::Operation;@;in;	@:@operand2o;A;@;io;	@;Bo;A;@;ip;	@;Bo;,	;@;ip;o;	;@;o; ;ip;!im;"o; ;ip;!il;#@;o;-
+;	@;."0;/@A;0[ ;i ;o;	;@;o; ;ip;!im;"o; ;ip;!i;#@:@operator:gte:@operand1o;;@;0;"compare-browser-versions;ip;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;ip;!ih;"@1;#@;)[o;<;@;"browser;ip;	@;="browser;o;	;@;o; ;ip;!i2;"o; ;ip;!i*;#@o;A;@;ip;	@;Bo;<;@;"min-version;ip;	@;="min_version;o;	;@;o; ;ip;!iP;"o; ;ip;!iD;#@;o;	;@;o; ;ip;!iP;"o; ;ip;!i4;#@;C:or;Eo;<;@;"max-version;ip;	@;="max_version;o;	;@;o; ;ip;!i@;"@J;#@o;<;@;"min-required-version;ip;	@;="min_required_version;o;	;@;o; ;ip;!ig;"o; ;ip;!iR;#@;o;	;@;o; ;ip;!im;"o; ;io;!i;#@;C:and;Eo;<;@;"min-required-version;io;	@;="min_required_version;o;	;@;o; ;io;!i&;"@X;#@;o;	;@;o; ;ip;!in;"o; ;in;!i;#@;C;F;Eo;A;@;in;	@;Bo;<;@;"threshold;in;	@;="threshold;o;	;@;o; ;in;!i#;"o; ;in;!i;#@;o;	;@;o; ;in;!i$;"@`;#@;C:gt;Eo;<;@;"
+usage;in;	@;="
+usage;o;	;@;o; ;in;!i;"@`;#@;in;	@;
+[ ;o;	;@;o; ;ip;!in;"o; ;in;!i;#@;o;	;@;o; ;ie;!iz;"o; ;ie;!i;#@;)[	[o;<;@;"browser;ie;	@;="browser;o;	;@;o; ;ie;!i/;"o; ;ie;!i';#@0[o;<;@;"min-version;ie;	@;="min_version;o;	;@;o; ;ie;!i=;"o; ;ie;!i1;#@0[o;<;@;"max-version;ie;	@;="max_version;o;	;@;o; ;ie;!iK;"o; ;ie;!i?;#@o;,	;@;ie;o;	;@;o; ;ie;!iQ;"o; ;ie;!iM;#@;@[o;<;@;"threshold;ie;	@;="threshold;o;	;@;o; ;ie;!i];"o; ;ie;!iS;#@o;<;@;"critical-usage-threshold;ie;	@;="critical_usage_threshold;o;	;@;o; ;ie;!ix;"o; ;ie;!i_;#@o;
+;;;is;	@;
+[ ;["â/* Include content for a legacy browser
+ * Version can be a single version string or a list of versions ordered from oldest to newest. */o:Sass::Tree::MixinDefNode;T;0;"for-legacy-browser;iu;	@;
+[u;?ï-[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineix:@options{ :@operand2o: Sass::Script::Tree::Funcall;@:@splat0:
+@name"support-legacy-browser;iy:@kwarg_splat0;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iy:@offsetiT:@start_poso;;iy;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[	o:!Sass::Script::Tree::Variable;@;"browser;iy;@:@underscored_name"browser;o;	;@;o;;iy;i+;o;;iy;i#;@o;";@;"min-version;iy;@;#"min_version;o;	;@;o;;iy;i9;o;;iy;i-;@o;";@;"max-version;iy;@;#"max_version;o;	;@;o;;iy;iG;o;;iy;i;;@o;";@;"threshold;iy;@;#"threshold;o;	;@;o;;iy;iS;o;;iy;iI;@;o;	;@;o;;iz;i;o;;ix;i;@:@operator:and:@operand1o:'Sass::Script::Tree::UnaryOperation;@;ix;@:@operando;
+;@;0;"browser-out-of-scope;ix;0;@;o;;{ ;IC;{ ;[ ;o;	;@;o;;ix;i<;o;;ix;i;@;![o;";@;"browser;ix;@;#"browser;o;	;@;o;;ix;i-;o;;ix;i%;@o;";@;"max-version;ix;@;#"max_version;o;	;@;o;;ix;i;;o;;ix;i/;@;o;	;@;o;;ix;i<;@1;@;$:notu:Sass::Tree::IfNoded[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei~:@options{ :@operand2o: Sass::Script::Tree::Funcall;@:@splat0:
+@name"browser-out-of-scope;i~:@kwarg_splat0;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i~:@offsetiZ:@start_poso;;i~;i.:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[o:!Sass::Script::Tree::Variable;@;"browser;i~;@:@underscored_name"browser;o;	;@;o;;i~;iK;o;;i~;iC;@o;";@;"max-version;i~;@;#"max_version;o;	;@;o;;i~;iY;o;;i~;iM;@;o;	;@;o;;i~;i[;o;;i~;i;@:@operator:and:@operand1o;";@;"debug-browser-support;i~;@;#"debug_browser_support;o;	;@;o;;i~;i);@%;@u:Sass::Tree::IfNode¸[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineiÅ:@options{ :@operand2o:'Sass::Script::Tree::UnaryOperation;@;iÇ;@:@operando: Sass::Script::Tree::Funcall;@:@splat0:
+@name"support-legacy-browser;iÇ:@kwarg_splat0;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iÇ:@offseti[:@start_poso;;iÇ;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[	o:!Sass::Script::Tree::Variable;@;"browser;iÇ;@:@underscored_name"browser;o;	;@;o;;iÇ;i2;o;;iÇ;i*;@o;$;@;"min-version;iÇ;@;%"min_version;o;	;@;o;;iÇ;i@;o;;iÇ;i4;@o;$;@;"max-version;iÇ;@;%"max_version;o;	;@;o;;iÇ;iN;o;;iÇ;iB;@o;$;@;"threshold;iÇ;@;%"threshold;o;	;@;o;;iÇ;iZ;o;;iÇ;iP;@;o;	;@;o;;iÇ;i[;o;;iÇ;i;@:@operator:not;o;	;@;o;;iÇ;i\;o;;iÅ;i;@;&:and:@operand1o;$;@;"debug-browser-support;iÅ;@;%"debug_browser_support;o;	;@;o;;iÅ;i);@5;@0[u:Sass::Tree::IfNodeπ[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineiÉ:@options{ :@operand2o:!Sass::Script::Tree::Variable;@:
+@name"threshold;iÉ;@:@underscored_name"threshold:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iÉ:@offsetiN:@start_poso;;iÉ;iD:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets;o;	;@;o;;iÉ;iO;o;;iÉ;i;@:@operator:gt:@operand1o: Sass::Script::Tree::Funcall;@:@splat0;"omitted-usage;iÉ:@kwarg_splat0;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;iÉ;iA;@;@:
+@args[o;
+;@;"browser;iÉ;@;"browser;o;	;@;o;;iÉ;i$;o;;iÉ;i;@o;
+;@;"min-version;iÉ;@;"min_version;o;	;@;o;;iÉ;i2;o;;iÉ;i&;@o;
+;@;"max-version;iÉ;@;"max_version;o;	;@;o;;iÉ;i@;o;;iÉ;i4;@u:Sass::Tree::IfNodeø[00[o:Sass::Tree::CommentNode
+:
+@type:normal:
+@lineiá:@options{ :@children[ :@value[
+"/* Content for o: Sass::Script::Tree::Funcall:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:@splat0:
+@name"display-browser-range;iá:@kwarg_splat0;	@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iá:@offsetiT:@start_poso;;iá;i:@importer0:
+@args[o:!Sass::Script::Tree::Variable;@;"browser;iá;	@:@underscored_name"browser;o;	;@;o;;iá;i7;o;;iá;i/;0o; ;@;"min-version;iá;	@;!"min_version;o;	;@;o;;iá;iE;o;;iá;i9;0o; ;@;"max-version;iá;	@;!"max_version;o;	;@;o;;iá;iS;o;;iá;iG;0"% omitted.
+   Minimum support is o;;@;0;"map-get;iá;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o;;iá;ií;o;;iá;if;0;[o; ;@;"browser-minimum-versions;iá;	@;!"browser_minimum_versions;o;	;@;o;;iá;iá;o;;iá;in;0o; ;@;"browser;iá;	@;!"browser;o;	;@;o;;iá;ië;o;;iá;iâ;0"	. */[o:Sass::Tree::CommentNode
+:
+@type:normal;iÑ;@:@children[ :@value["/* Content for o;;@;0;"display-browser-range;iÑ;0;@; o;!;"{ ;#IC;${ ;%[ ;o;	;@;o;;iÑ;i#;o;;iÑ;iË;0;&[o;
+;@;"browser;iÑ;@;"browser;o;	;@;o;;iÑ;i;o;;iÑ;i˛;0o;
+;@;"min-version;iÑ;@;"min_version;o;	;@;o;;iÑ;i;o;;iÑ;i;0o;
+;@;"max-version;iÑ;@;"max_version;o;	;@;o;;iÑ;i";o;;iÑ;i;0"* omitted.
+   User threshold to keep: o;
+;@;"threshold;iÑ;@;"threshold;o;	;@;o;;iÑ;i?;o;;iÑ;i5;0"%. If o;;@;0;"display-browser-range;iÑ;0;@; o;!;"{ ;#IC;${ ;%[ ;o;	;@;o;;iÑ;i®;o;;iÑ;im;0;&[o;
+;@;"browser;iÑ;@;"browser;o;	;@;o;;iÑ;iã;o;;iÑ;iÉ;0o;
+;@;"min-version;iÑ;@;"min_version;o;	;@;o;;iÑ;iô;o;;iÑ;iç;0o;
+;@;"max-version;iÑ;@;"max_version;o;	;@;o;;iÑ;iß;o;;iÑ;iõ;0" and below are omitted: o;;@;0;"omitted-usage;iÑ;0;@; o;!;"{ ;#IC;${ ;%[ ;o;	;@;o;;iÑ;i‰;o;;iÑ;i±;0;&[o;
+;@;"browser;iÑ;@;"browser;o;	;@;o;;iÑ;i«;o;;iÑ;iø;0o;
+;@;"min-version;iÑ;@;"min_version;o;	;@;o;;iÑ;i’;o;;iÑ;i…;0o;
+;@;"max-version;iÑ;@;"max_version;o;	;@;o;;iÑ;i„;o;;iÑ;i◊;0"
+%. */[o:Sass::Tree::CommentNode
+:
+@type:normal;i;@:@children[ :@value[
+"/* Content for o;
+;@;0;"display-browser-range;i;0;@;o;;{ ;IC;{ ;[ ;o;	;@;o;;i;iõ;o;;i;i`;0;![o;";@;"browser;i;@;#"browser;o;	;@;o;;i;i~;o;;i;iv;0o;";@;"min-version;i;@;#"min_version;o;	;@;o;;i;iå;o;;i;iÄ;0o;";@;"max-version;i;@;#"max_version;o;	;@;o;;i;iö;o;;i;ié;0"4 omitted.
+   Not allowed in the current scope: o;
+;@;0;"browser-out-of-scope;i;0;@;o;;{ ;IC;{ ;[ ;o;	;@;o;;i;iŸ;o;;i;i≠;0;![o;";@;"browser;i;@;#"browser;o;	;@;o;;i;i ;o;;i;i¬;0o;";@;"max-version;i;@;#"max_version;o;	;@;o;;i;iÿ;o;;i;iÃ;0" */[u;*
+[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"debug-browser-support:
+@linei{:@options{ :@underscored_name"debug_browser_support:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i{:@offseti$:@start_poso;;i{;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets0[o:Sass::Tree::CommentNode
+:
+@type:normal;i|;	@	:@children[ :@value["/* Content for o: Sass::Script::Tree::Funcall;@:@splat0;"display-browser-range;i|:@kwarg_splat0;	@	:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;i|;ih;o;;i|;i-;0:
+@args[o; ;@;"browser;i|;	@	;
+"browser;o;	;@;o;;i|;iK;o;;i|;iC;0o; ;@;"min-version;i|;	@	;
+"min_version;o;	;@;o;;i|;iY;o;;i|;iM;0o; ;@;"max-version;i|;	@	;
+"max_version;o;	;@;o;;i|;ig;o;;i|;i[;0".
+Min version: o:"Sass::Script::Tree::Operation;@;i|;	@	:@operand2o: Sass::Script::Tree::Literal	;@;i|;o;	;@;o;;i|;iµ;o;;i|;i™;0;o: Sass::Script::Value::String;:identifier;	@	;"unspecified;o;	;@;o;;i|;iµ;o;;i|;iz;0:@operator:or:@operand1o;;@;0;"map-get;i|;0;	@	; o;!;"{ ;#IC;${ ;%[ ;o;	;@;o;;i|;i¶;@=;0;&[o; ;@;"browser-minimum-versions;i|;	@	;
+"browser_minimum_versions;o;	;@;o;;i|;iõ;o;;i|;iÇ;0o; ;@;"browser;i|;	@	;
+"browser;o;	;@;o;;i|;i•;o;;i|;iù;0".
+User threshold to keep: o; ;@;"threshold;i|;	@	;
+"threshold;o;	;@;o;;i|;i◊;o;;i|;iÕ;0"%. If o;;@;0;"display-browser-range;i|;0;	@	; o;!;"{ ;#IC;${ ;%[ ;o;	;@;o;;i|;i5;o;;i|;i˙;0;&[o; ;@;"browser;i|;	@	;
+"browser;o;	;@;o;;i|;i;o;;i|;i;0o; ;@;"min-version;i|;	@	;
+"min_version;o;	;@;o;;i|;i&;o;;i|;i;0o; ;@;"max-version;i|;	@	;
+"max_version;o;	;@;o;;i|;i4;o;;i|;i(;0" are omitted: o;;@;0;"omitted-usage;i|;0;	@	; o;!;"{ ;#IC;${ ;%[ ;o;	;@;o;;i|;iq;o;;i|;i>;0;&[o; ;@;"browser;i|;	@	;
+"browser;o;	;@;o;;i|;iT;o;;i|;iL;0o; ;@;"min-version;i|;	@	;
+"min_version;o;	;@;o;;i|;ib;o;;i|;iV;0o; ;@;"max-version;i|;	@	;
+"max_version;o;	;@;o;;i|;ip;o;;i|;id;0"
+%. */o:Sass::Tree::MixinNode:@has_childrenT;0;"with-browser-ranges;i{;0;@:@children[o:Sass::Tree::ContentNode	;i|;@;-[ ;o;	;@;o;;i|;i;o;;i|;i;@;o;;{ ;IC;{ ;[ ;o;	;@;o;;i{;ie;o;;i{;i
+;@;![o;
+;@;0;"intersect-browser-ranges;i{;0;@;o;;{ ;IC;{ ;[ ;o;	;@;o;;i{;ic;o;;i{;i';@;![o;";@;"current-browser-versions;i{;@;#"current_browser_versions;o;	;@;o;;i{;iY;o;;i{;i@;@o;";@;"ranges;i{;@;#"ranges;o;	;@;o;;i{;ib;o;;i{;i[;@;o;	;@;o; ;iw;!iP;"o; ;iu;!i;#@;)[
+[o;<;@;"browser;iu;	@;="browser;o;	;@;o; ;iu;!i(;"o; ;iu;!i ;#@0[o;<;@;"min-version;iu;	@;="min_version;o;	;@;o; ;iu;!i6;"o; ;iu;!i*;#@0[o;<;@;"max-version;iu;	@;="max_version;o;	;@;o; ;iu;!iD;"o; ;iu;!i8;#@o;<;@;"min-version;iu;	@;="min_version;o;	;@;o; ;iu;!iR;"o; ;iu;!iF;#@[o;<;@;"threshold;iv;	@;="threshold;o;	;@;o; ;iv;!i*;"o; ;iv;!i ;#@o;<;@;"critical-usage-threshold;iv;	@;="critical_usage_threshold;o;	;@;o; ;iv;!iE;"o; ;iv;!i,;#@[o;<;@;"ranges;iw;	@;="ranges;o;	;@;o; ;iw;!i';"o; ;iw;!i ;#@o;2
+;@;iw;	@;o;	;@;o; ;iw;!iM;"o; ;iw;!i*;#@;3[[o;<;@;"browser;iw;	@;="browser;o;	;@;o; ;iw;!i2;"o; ;iw;!i*;#@o;7;@;iw;	@;8:
+space;o;	;@;o; ;iw;!iM;"o; ;iw;!i3;#@;:[o;<;@;"min-version;iw;	@;="min_version;o;	;@;o; ;iw;!i@;"o; ;iw;!i4;#@o;<;@;"max-version;iw;	@;="max_version;o;	;@;o; ;iw;!iM;"o; ;iw;!iA;#@o;>;T;0;"display-browser-range;iç;	@;
+[o;@
+;o:,Sass::Script::Tree::StringInterpolation;@:@aftero;K;@;Lo;K;@;Lo;,	;@;ié;o;	;@;o; ;ié;!ià;"o; ;ié;!iá;#@;o;4;;5;	@;" ;ié;	@:	@mido;;@;0;"if;ié;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;ié;!iÜ;"o; ;ié;!i@;#@;)[o;A;@;ié;	@;Bo;<;@;"min-version;ié;	@;="min_version;o;	;@;o; ;ié;!i_;"o; ;ié;!iS;#@;o;	;@;o; ;ié;!i_;"o; ;ié;!iC;#@;C:neq;Eo;<;@;"max-version;ié;	@;="max_version;o;	;@;o; ;ié;!iO;"@;#@o;7;@;ié;	@;8;J;o;	;@;o; ;ié;!i;"o; ;ié;!i`;#@;:[o;;@;0;"unquote;ié;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;ié;!in;"o; ;ié;!ia;#@;)[o;,	;@;ié;o;	;@;o; ;ié;!im;"o; ;ié;!ii;#@;o;4;;5;	@;" -o;;@;0;"unquote;ié;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;ié;!i;"o; ;ié;!io;#@;)[o;<;@;"max-version;ié;	@;="max_version;o;	;@;o; ;ié;!i~;"o; ;ié;!iw;#@o;,	;@;ié;o;	;@;o; ;ié;!iÖ;"o; ;ié;!iÅ;#@;@:@beforeo;,	;@;ié;o;	;@;o; ;ié;!i>;"o; ;ié;!i>;#@;o;4;;5;	@;" ;o;	;@;o; ;ié;!ià;"@G;#@;ié;	@;Mo;;@;0;"unquote;ié;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;ié;!i=;"o; ;ié;!i(;#@;)[o;<;@;"min-version;ié;	@;="min_version;o;	;@;o; ;ié;!i<;"o; ;ié;!i0;#@;Oo;,	;@;ié;o;	;@;o; ;ié;!i&;"o; ;ié;!i%;#@;o;4;;5;	@;" ;o;	;@;o; ;ié;!ià;"@_;#@;ié;	@;Mo;;@;0;"unquote;ié;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;ié;!i$;"o; ;ié;!i;#@;)[o;<;@;"browser;ié;	@;="browser;o;	;@;o; ;ié;!i#;"o; ;ié;!i;#@;Oo;,	;@;ié;o;	;@;o; ;ié;!i;"o; ;ié;!i;#@;o;4;;5;	@;" ;o;	;@;o; ;ié;!ià;"@w;#@;ié;	@;
+[ ;o;	;@;o; ;ié;!ià;"o; ;ié;!i;#@;o;	;@;o; ;iç;!iZ;"o; ;iç;!i;#@;)[[o;<;@;"browser;iç;	@;="browser;o;	;@;o; ;iç;!i.;"o; ;iç;!i&;#@0[o;<;@;"min-version;iç;	@;="min_version;o;	;@;o; ;iç;!i<;"o; ;iç;!i0;#@0[o;<;@;"max-version;iç;	@;="max_version;o;	;@;o; ;iç;!iJ;"o; ;iç;!i>;#@o;<;@;"min-version;iç;	@;="min_version;o;	;@;o; ;iç;!iX;"o; ;iç;!iL;#@o;
+;;;ií;	@;
+[ ;["É/* Renders the content once if any of the legacy browsers are supported.
+ * $browsers is a map of browser name to version ranges */o;I;T;0;"for-legacy-browsers;iî;	@;
+[o;;o;,	;@;iï;o;	;@;o; ;iï;!i;"o; ;iï;!i;#@;@d;"rendered;iï;	@;
+[ ;*0;o;	;@;o; ;iï;!i;"o; ;iï;!i	;#@;+0o:Sass::Tree::EachNode;T;iñ;	@;
+[u;?/[o:'Sass::Script::Tree::UnaryOperation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineió:@options{ :@operando:!Sass::Script::Tree::Variable;@:
+@name"rendered;ió;@:@underscored_name"rendered:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;ió:@offseti:@start_poso;;ió;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets;o;	;@;o;;ió;i;o;;ió;i;@:@operator:not0[o:Sass::Tree::MixinNode:@has_childrenT:@splato;
+;@;"
+range;iò;@;"
+range;o;	;@;o;;iò;i8;o;;iò;i2;@;"for-legacy-browser;iò:@kwarg_splat0;@:@children[o:Sass::Tree::VariableNode:
+@expro: Sass::Script::Tree::Literal	;@;iô;o;	;@;o;;iô;i;o;;iô;i;@:@valueo:Sass::Script::Value::Bool;@;$T;"rendered;iô;@; [ :@global0;o;	;@;o;;iô;i;o;;iô;i;@:@guarded0o:Sass::Tree::ContentNode	;iö;@; [ ;o;	;@;o;;iö;i;o;;iö;i;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{"threshold"threshold"ranges"ranges:	@mapIC:OrderedHash{@2o;
+;@;"threshold;iò;@;"threshold;o;	;@;o;;iò;iS;o;;iò;iI;@@4o;
+;@;"browsers;iò;@;"browsers;o;	;@;o;;iò;ig;o;;iò;i^;@:
+@keys["threshold"ranges;o;	;@;o;;iò;ii;o;;iò;i;@:
+@args[o;
+;@;"browser;iò;@;"browser;o;	;@;o;;iò;i0;o;;iò;i(;@:
+@listo;<;@;"browsers;iñ;	@;="browsers;o;	;@;o; ;iñ;!i+;"o; ;iñ;!i";#@;o;	;@;o; ;iñ;!i,;"o; ;iñ;!i;#@:
+@vars["browser"
+range;o;	;@;o; ;iî;!iS;"o; ;iî;!i;#@;)[[o;<;@;"browsers;iî;	@;="browsers;o;	;@;o; ;iî;!i*;"o; ;iî;!i!;#@0[o;<;@;"threshold;iî;	@;="threshold;o;	;@;o; ;iî;!i6;"o; ;iî;!i,;#@o;<;@;"critical-usage-threshold;iî;	@;="critical_usage_threshold;o;	;@;o; ;iî;!iQ;"o; ;iî;!i8;#@o;
+;;;i†;	@;
+[ ;["©/* If there's a prefix context in scope, this will only output the content if the prefix matches.
+ * Otherwise, sets the current prefix scope and outputs the content. */o;I;T;0;"with-prefix;i¢;	@;
+[u;?&+[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei£:@options{ :@operand2o:!Sass::Script::Tree::Variable;@:
+@name"prefix-context;i£;@:@underscored_name"prefix_context:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i£:@offseti.:@start_poso;;i£;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets;o;	;@;o;;i£;i/;o;;i£;i;@:@operator:or:@operand1o;
+;@;"current-prefix;i£;@;"current_prefix;o;	;@;o;;i£;i;@;@u:Sass::Tree::IfNodef[00[u:Sass::Tree::IfNode~[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei¡:@options{ :@operand2o:!Sass::Script::Tree::Variable;@:
+@name"prefix;i¡;@:@underscored_name"prefix:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i¡:@offseti0:@start_poso;;i¡;i):@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets;o;	;@;o;;i¡;i1;o;;i¡;i;@:@operator:and:@operand1o;
+;@;"debug-browser-support;i¡;@;"debug_browser_support;o;	;@;o;;i¡;i$;@;@0[o:Sass::Tree::CommentNode
+:
+@type:normal;i¬;@:@children[ :@value["/* Creating new o;
+;@;"prefix;i¬;@;"prefix;o;	;@;o;;i¬;ix ;o;;i¬;iq ;0" context. */o:Sass::Tree::VariableNode:
+@expro:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"prefix:
+@lineiƒ:@options{ :@underscored_name"prefix:@source_rangeo:Sass::Source::Range	:
+@file@
+:@end_poso:Sass::Source::Position;iƒ:@offseti":@start_poso;;iƒ;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets;
+"prefix-context;iƒ;@:@children[ :@globalT;o;	;@
+;o;;iƒ;i*;o;;iƒ;i;@:@guarded0o;;o;;	@
+;
+"prefix;i≈;@;"prefix;o;	;@
+;o;;i≈;i";o;;i≈;i;@;
+"current-prefix;i≈;@;[ ;T;o;	;@
+;o;;i≈;i*;o;;i≈;i;@;0o:Sass::Tree::ContentNode	;i∆;@;[ ;o;	;@
+;o;;i∆;i;o;;i∆;i
+;@o;;o: Sass::Script::Tree::Literal	;	@
+;i«;o;	;@
+;o;;i«;i;o;;i«;i;@:@valueo:Sass::Script::Value::Null;@; 0;
+"current-prefix;i«;@;[ ;T;o;	;@
+;o;;i«;i';o;;i«;i;@;0o;;o;	;	@
+;i»;o;	;@
+;o;;i»;i;o;;i»;i;@; @0;
+"prefix-context;i»;@;[ ;T;o;	;@
+;o;;i»;i';o;;i»;i;@;0[u;‚[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei§:@options{ :@operand2o; ;@;i§;@;	o:!Sass::Script::Tree::Variable;@:
+@name"prefix;i§;@:@underscored_name"prefix:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i§:@offsetiF:@start_poso;;i§;i?:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets;o;	;@;o;;i§;iG;o;;i§;i,;@:@operator:eq:@operand1o;
+;@;"prefix-context;i§;@;"prefix_context;o;	;@;o;;i§;i;;@;@;o;	;@;o;;i§;iG;o;;i§;i;@;:or;o; ;@;i§;@;	o;
+;@;"prefix;i§;@;"prefix;o;	;@;o;;i§;i(;o;;i§;i!;@;o;	;@;o;;i§;i);@;@;;;o;
+;@;"current-prefix;i§;@;"current_prefix;o;	;@;o;;i§;i;@;@u:Sass::Tree::IfNode∂[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei≥:@options{ :@operand2o: Sass::Script::Tree::Literal	;@;i≥:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i≥:@offseti$:@start_poso;;i≥;i :@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo:Sass::Script::Value::Null;@;0;o;	;@;o;;i≥;i%;o;;i≥;i;@:@operator:eq:@operand1o:!Sass::Script::Tree::Variable;@:
+@name"prefix;i≥;@:@underscored_name"prefix;o;	;@;o;;i≥;i;@;@u:Sass::Tree::IfNode;[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"debug-browser-support:
+@lineiΩ:@options{ :@underscored_name"debug_browser_support:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iΩ:@offseti+:@start_poso;;iΩ;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets0[o:Sass::Tree::CommentNode
+:
+@type:normal;iæ;	@	:@children[ :@value[
+"/* Omitting content for o; ;@;"prefix;iæ;	@	;
+"prefix;o;	;@;o;;iæ;i›;o;;iæ;i÷;0" because o; ;@;"current-prefix;iæ;	@	;
+"current_prefix;o;	;@;o;;iæ;i ;o;;iæ;i¯;0" is already in scope. */[o:Sass::Tree::VariableNode:
+@expro;;@;"prefix-context;i¥;@;"prefix_context;o;	;@;o;;i¥;i0;o;;i¥;i!;@;"old-prefix-context;i¥;@:@children[ :@global0;o;	;@;o;;i¥;i0;o;;i¥;i;@:@guarded0o;!;"o; ;@;iµ;@;	o;;@;"current-prefix;iµ;@;"current_prefix;o;	;@;o;;iµ;i?;o;;iµ;i0;@;o;	;@;o;;iµ;i@;o;;iµ;i;@;:or;o;;@;"prefix-context;iµ;@;"prefix_context;o;	;@;o;;iµ;i,;@2;@;"prefix-context;iµ;@;#[ ;$T;o;	;@;o;;iµ;iG;o;;iµ;i;@;%0o;!;"o;
+	;@;i∂;o;	;@;o;;i∂;i!;o;;i∂;i;@;@;"current-prefix;i∂;@;#[ ;$T;o;	;@;o;;i∂;i);o;;i∂;i;@;%0u; Ë[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"debug-browser-support:
+@linei∑:@options{ :@underscored_name"debug_browser_support:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i∑:@offseti&:@start_poso;;i∑;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets0[o:Sass::Tree::CommentNode
+:
+@type:normal;i∏;	@	:@children[ :@value["=/* Content for official syntax. Prefix context is still o; ;@;"prefix-context;i∏;	@	;
+"prefix_context;o;	;@;o;;i∏;iÏ;o;;i∏;i›;0"	. */o:Sass::Tree::ContentNode	;i∫;@;#[ ;o;	;@;o;;i∫;i;o;;i∫;i;@o;!;"o;;@;"prefix-context;iª;@;"prefix_context;o;	;@;o;;iª;i,;o;;iª;i;@;"current-prefix;iª;@;#[ ;$T;o;	;@;o;;iª;i4;o;;iª;i;@;%0o;!;"o;;@;"old-prefix-context;iº;@;"old_prefix_context;o;	;@;o;;iº;i0;o;;iº;i;@;"prefix-context;iº;@;#[ ;$T;o;	;@;o;;iº;i8;o;;iº;i;@;%0[u;“[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"debug-browser-support:
+@linei•:@options{ :@underscored_name"debug_browser_support:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i•:@offseti&:@start_poso;;i•;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets0[u:Sass::Tree::IfNode¿[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"prefix:
+@linei¶:@options{ :@underscored_name"prefix:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i¶:@offseti:@start_poso;;i¶;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheetsu:Sass::Tree::IfNodeº[00[o:Sass::Tree::CommentNode
+:
+@type:normal:
+@linei©:@options{ :@children[ :@value["/* unprefixed content. o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss;i©;	@:@operand2o:!Sass::Script::Tree::Variable;@:
+@name"prefix-context;i©;	@:@underscored_name"prefix_context:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i©:@offsetiç:@start_poso;;i©;i~:@importer0;o;	;@;o;;i©;iç;o;;i©;ik;0:@operator:or:@operand1o;;@;"current-prefix;i©;	@;"current_prefix;o;	;@;o;;i©;iz;@;0" is already in scope. */[o:Sass::Tree::CommentNode
+:
+@type:normal;iß;	@	:@children[ :@value[
+"/* content for o; ;@;"prefix;iß;	@	;
+"prefix;o;	;@;o;;iß;iˆ;o;;iß;iÔ;0" because o:"Sass::Script::Tree::Operation;@;iß;	@	:@operand2o; ;@;"prefix-context;iß;	@	;
+"prefix_context;o;	;@;o;;iß;i*;o;;iß;i;0;o;	;@;o;;iß;i*;o;;iß;i;0:@operator:or:@operand1o; ;@;"current-prefix;iß;	@	;
+"current_prefix;o;	;@;o;;iß;i;@(;0" is already in scope. */o:Sass::Tree::VariableNode:
+@expro;
+;@;"prefix-context;i¨;@;"prefix_context;o;	;@;o;;i¨;i0;o;;i¨;i!;@;"old-prefix-context;i¨;@:@children[ :@global0;o;	;@;o;;i¨;i0;o;;i¨;i;@:@guarded0o;; o;
+;@;"current-prefix;i≠;@;"current_prefix;o;	;@;o;;i≠;i(;o;;i≠;i;@;"old-prefix;i≠;@;![ ;"0;o;	;@;o;;i≠;i(;o;;i≠;i;@;#0o;; o; ;@;iÆ;@;	o;
+;@;"current-prefix;iÆ;@;"current_prefix;o;	;@;o;;iÆ;i?;o;;iÆ;i0;@;o;	;@;o;;iÆ;i@;o;;iÆ;i;@;;;o;
+;@;"prefix-context;iÆ;@;"prefix_context;o;	;@;o;;iÆ;i,;@R;@;"prefix-context;iÆ;@;![ ;"T;o;	;@;o;;iÆ;iG;o;;iÆ;i;@;#0o;; o;
+;@;"prefix;iØ;@;"prefix;o;	;@;o;;iØ;i$;o;;iØ;i;@;"current-prefix;iØ;@;![ ;"T;o;	;@;o;;iØ;i,;o;;iØ;i;@;#0o:Sass::Tree::ContentNode	;i∞;@;![ ;o;	;@;o;;i∞;i;o;;i∞;i;@o;; o;
+;@;"old-prefix-context;i±;@;"old_prefix_context;o;	;@;o;;i±;i0;o;;i±;i;@;"prefix-context;i±;@;![ ;"T;o;	;@;o;;i±;i8;o;;i±;i;@;#0o;; o;
+;@;"old-prefix;i≤;@;"old_prefix;o;	;@;o;;i≤;i(;o;;i≤;i;@;"current-prefix;i≤;@;![ ;"T;o;	;@;o;;i≤;i0;o;;i≤;i;@;#0;o;	;@;o; ;i¢;!i";"o; ;i¢;!i;#@;)[[o;<;@;"prefix;i¢;	@;="prefix;o;	;@;o; ;i¢;!i ;"o; ;i¢;!i;#@0o;>;T;0;"prefixes-for-capability;iÃ;	@;
+[o;;o;7;@;iÕ;	@;80;o;	;@;o; ;iÕ;!i;"o; ;iÕ;!i;#@;:[ ;"result;iÕ;	@;
+[ ;*0;o;	;@;o; ;iÕ;!i;"o; ;iÕ;!i	;#@;+0o;P;T;iŒ;	@;
+[o;;o;;@;0;"map-merge;iœ;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;i–;!ii;"o; ;iœ;!i;#@;)[o;<;@;"result;iœ;	@;="result;o;	;@;o; ;iœ;!i$;"o; ;iœ;!i;#@o;2
+;@;i–;	@;o;	;@;o; ;i–;!ig;"o; ;i–;!i;#@;3[[o;<;@;"prefix;i–;	@;="prefix;o;	;@;o; ;i–;!i$;"o; ;i–;!i;#@o;;@;0;"use-prefix;i–;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;i–;!ig;"o; ;i–;!i&;#@;)[	o;<;@;"prefix;i–;	@;="prefix;o;	;@;o; ;i–;!i8;"o; ;i–;!i1;#@o;<;@;"capability;i–;	@;="capability;o;	;@;o; ;i–;!iE;"o; ;i–;!i:;#@o;<;@;"threshold;i–;	@;="threshold;o;	;@;o; ;i–;!iQ;"o; ;i–;!iG;#@o;<;@;"capability-options;i–;	@;="capability_options;o;	;@;o; ;i–;!if;"o; ;i–;!iS;#@;"result;iœ;	@;
+[ ;*0;o;	;@;o; ;i–;!ii;"o; ;iœ;!i;#@;+0;Qo;;@;0;"browser-prefixes;iŒ;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iŒ;!i>;"o; ;iŒ;!i;#@;)[o;<;@;"supported-browsers;iŒ;	@;="supported_browsers;o;	;@;o; ;iŒ;!i=;"o; ;iŒ;!i*;#@;o;	;@;o; ;iŒ;!i?;"o; ;iŒ;!i;#@;R["prefixo;@
+;o;<;@;"result;i“;	@;="result;o;	;@;o; ;i“;!i;"o; ;i“;!i;#@;i“;	@;
+[ ;o;	;@;o; ;i“;!i;"o; ;i“;!i;#@;o;	;@;o; ;iÃ;!is;"o; ;iÃ;!i;#@;)[[o;<;@;"capability;iÃ;	@;="capability;o;	;@;o; ;iÃ;!i3;"o; ;iÃ;!i(;#@0[o;<;@;"threshold;iÃ;	@;="threshold;o;	;@;o; ;iÃ;!i?;"o; ;iÃ;!i5;#@0[o;<;@;"capability-options;iÃ;	@;="capability_options;o;	;@;o; ;iÃ;!iT;"o; ;iÃ;!iA;#@o;<;@;"default-capability-options;iÃ;	@;="default_capability_options;o;	;@;o; ;iÃ;!iq;"o; ;iÃ;!iV;#@o;
+;;;i’;	@;
+[ ;["./* Yields to the mixin content once for each prefix required.
+ * The current prefix is set to the $current-prefix global for use by the included content.
+ * Also yields to the content once with $current-prefix set to null for the official version
+ * as long as there's not already a prefix in scope. */o;I;T;0;"with-each-prefix;iŸ;	@;
+[o;P;T;i⁄;	@;
+[u;?&[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"should-use-prefix:
+@linei€:@options{ :@underscored_name"should_use_prefix:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i€:@offseti :@start_poso;;i€;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheetsu:Sass::Tree::IfNode∆[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"debug-browser-support:
+@lineiÊ:@options{ :@underscored_name"debug_browser_support:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iÊ:@offseti+:@start_poso;;iÊ;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets0[o:Sass::Tree::CommentNode
+:
+@type:normal;iÁ;	@	:@children[ :@value["/* Capability o; ;@;"capability;iÁ;	@	;
+"capability;o;	;@;o;;iÁ;i1';o;;iÁ;i&';0" is not prefixed with o; ;@;"prefix;iÁ;	@	;
+"prefix;o;	;@;o;;iÁ;iI';o;;iÁ;iB';0" because o: Sass::Script::Tree::Funcall;@:@splat0;"prefix-usage;iÁ:@kwarg_splat0;	@	:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;iÁ;iô';o;;iÁ;ib';0:
+@args[o; ;@;"prefix;iÁ;	@	;
+"prefix;o;	;@;o;;iÁ;iv';o;;iÁ;io';0o; ;@;"capability;iÁ;	@	;
+"capability;o;	;@;o;;iÁ;iÉ';o;;iÁ;ix';0o; ;@;"capability-options;iÁ;	@	;
+"capability_options;o;	;@;o;;iÁ;iò';o;;iÁ;iÖ';0"A% of users are affected which is less than the threshold of o; ;@;"threshold;iÁ;	@	;
+"threshold;o;	;@;o;;iÁ;iØ';o;;iÁ;i•';0"	. */[u;Á[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei‹:@options{ :@operand2o; ;@;i‹;@;	o: Sass::Script::Tree::Literal	;@;i‹:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i‹:@offsetiN:@start_poso;;i‹;iJ:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo: Sass::Script::Value::String:
+@type:identifier;@;"	list;o;	;@;o;;i‹;iO;o;;i‹;i+;@:@operator:eq:@operand1o: Sass::Script::Tree::Funcall;@:@splat0:
+@name"type-of;i‹:@kwarg_splat0;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;i‹;iF;@;@:
+@args[o:!Sass::Script::Tree::Variable;@;!"should-use-prefix;i‹;@:@underscored_name"should_use_prefix;o;	;@;o;;i‹;iE;o;;i‹;i3;@;o;	;@;o;;i‹;iO;o;;i‹;i;@;:and;o;*;@;!"debug-browser-support;i‹;@;+"debug_browser_support;o;	;@;o;;i‹;i&;@(;@u:Sass::Tree::IfNode≠[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineiﬁ:@options{ :@operand2o; ;@;iﬁ;@;	o: Sass::Script::Tree::Literal	;@;iﬁ:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iﬁ:@offsetiW:@start_poso;;iﬁ;iQ:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo: Sass::Script::Value::String:
+@type:identifier;@;"number;o;	;@;o;;iﬁ;iX;o;;iﬁ;i2;@:@operator:eq:@operand1o: Sass::Script::Tree::Funcall;@:@splat0:
+@name"type-of;iﬁ:@kwarg_splat0;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;iﬁ;iM;@;@:
+@args[o:!Sass::Script::Tree::Variable;@;!"should-use-prefix;iﬁ;@:@underscored_name"should_use_prefix;o;	;@;o;;iﬁ;iL;o;;iﬁ;i:;@;o;	;@;o;;iﬁ;iX;o;;iﬁ;i;@;:and;o;*;@;!"debug-browser-support;iﬁ;@;+"debug_browser_support;o;	;@;o;;iﬁ;i-;@(;@0[o:Sass::Tree::CommentNode
+;:normal;iﬂ;@:@children[ ;["/* Capability o;*;@;!"capability;iﬂ;@;+"capability;o;	;@;o;;iﬂ;i€%;o;;iﬂ;i–%;0" is prefixed with o;*;@;!"prefix;iﬂ;@;+"prefix;o;	;@;o;;iﬂ;iÛ%;o;;iﬂ;iÏ%;0" because o;*;@;!"should-use-prefix;iﬂ;@;+"should_use_prefix;o;	;@;o;;iﬂ;i&;o;;iﬂ;i&;0"<% of users need it which is more than the threshold of o;*;@;!"threshold;iﬂ;@;+"threshold;o;	;@;o;;iﬂ;i0&;o;;iﬂ;i&&;0"
+%. */[o:Sass::Tree::CommentNode
+;:normal;i›;@:@children[ ;["/* Capability o;*;@;!"capability;i›;@;+"capability;o;	;@;o;;i›;i%;o;;i›;i%;0" is prefixed with o;*;@;!"prefix;i›;@;+"prefix;o;	;@;o;;i›;i0%;o;;i›;i)%;0" because o;*;@;!"should-use-prefix;i›;@;+"should_use_prefix;o;	;@;o;;i›;iW%;o;;i›;iE%;0" is required. */o:Sass::Tree::MixinNode:@has_childrenT:@splat0;"with-prefix;i·:@kwarg_splat0;	@	:@children[o;;T;0;"with-browser-ranges;i‚;0;	@	;[o:Sass::Tree::ContentNode	;i„;	@	;[ ;o;	;@;o;;i„;i;o;;i„;i;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;i‚;i8;o;;i‚;i;@:
+@args[o; ;@;"capability;i‚;	@	;
+"capability;o;	;@;o;;i‚;i6;o;;i‚;i+;@;o; ;!{ ;"IC;#{ ;$[ ;o;	;@;o;;i·;i*;o;;i·;i;@;%[o; ;@;"prefix;i·;	@	;
+"prefix;o;	;@;o;;i·;i(;o;;i·;i!;@;Qo;;@;0;"prefixes-for-capability;i⁄;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;i⁄;!ir;"o; ;i⁄;!i-;#@;)[o;<;@;"capability;i⁄;	@;="capability;o;	;@;o; ;i⁄;!iP;"o; ;i⁄;!iE;#@o;<;@;"threshold;i⁄;	@;="threshold;o;	;@;o; ;i⁄;!i\;"o; ;i⁄;!iR;#@o;<;@;"capability-options;i⁄;	@;="capability_options;o;	;@;o; ;i⁄;!iq;"o; ;i⁄;!i^;#@;o;	;@;o; ;i⁄;!is;"o; ;i⁄;!i;#@;R["prefix"should-use-prefixo:Sass::Tree::MixinNode;T;0;"with-prefix;iÍ;0;	@;
+[o;S;T;0;"with-browser-ranges;iÎ;0;	@;
+[o:Sass::Tree::ContentNode	;iÏ;	@;
+[ ;o;	;@;o; ;iÏ;!i;"o; ;iÏ;!i;#@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iÎ;!i4;"o; ;iÎ;!i
+;#@;)[o;<;@;"capability;iÎ;	@;="capability;o;	;@;o; ;iÎ;!i2;"o; ;iÎ;!i';#@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iÍ;!i#;"o; ;iÍ;!i;#@;)[o;,	;@;iÍ;o;	;@;o; ;iÍ;!i!;"o; ;iÍ;!i;#@;@;o;	;@;o; ;iŸ;!ii;"o; ;iŸ;!i;#@;)[[o;<;@;"capability;iŸ;	@;="capability;o;	;@;o; ;iŸ;!i);"o; ;iŸ;!i;#@0[o;<;@;"threshold;iŸ;	@;="threshold;o;	;@;o; ;iŸ;!i5;"o; ;iŸ;!i+;#@0[o;<;@;"capability-options;iŸ;	@;="capability_options;o;	;@;o; ;iŸ;!iJ;"o; ;iŸ;!i7;#@o;<;@;"default-capability-options;iŸ;	@;="default_capability_options;o;	;@;o; ;iŸ;!ig;"o; ;iŸ;!iL;#@o;
+;;;iÒ;	@;
+[ ;["ò/* Returns true if at least one browser-version pair in $subset-ranges
+ * is a higher (or same) version than the browser-version pairs in
+ * $ranges. */o;>;T;0;"has-browser-subset;iÙ;	@;
+[o;;o;,	;@;iı;o;	;@;o; ;iı;!i;"o; ;iı;!i;#@;@d;"found-mismatch;iı;	@;
+[ ;*0;o;	;@;o; ;iı;!i;"o; ;iı;!i	;#@;+0o;P;T;iˆ;	@;
+[o;;o;;@;0;"map-get;i˜;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;i˜;!i,;"o; ;i˜;!i;#@;)[o;<;@;"ranges;i˜;	@;="ranges;o;	;@;o; ;i˜;!i!;"o; ;i˜;!i;#@o;<;@;"browser;i˜;	@;="browser;o;	;@;o; ;i˜;!i+;"o; ;i˜;!i#;#@;"
+range;i˜;	@;
+[ ;*0;o;	;@;o; ;i˜;!i,;"o; ;i˜;!i;#@;+0u;?1 [o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"
+range:
+@linei¯:@options{ :@underscored_name"
+range:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i¯:@offseti:@start_poso;;i¯;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets0[
+o:Sass::Tree::VariableNode:
+@expro: Sass::Script::Tree::Funcall;@:@splat0;"nth;i˘:@kwarg_splat0;	@	:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;i˘;i);o;;i˘;i;@:
+@args[o; ;@;"subset-range;i˘;	@	;
+"subset_range;o;	;@;o;;i˘;i%;o;;i˘;i;@o: Sass::Script::Tree::Literal	;@;i˘;o;	;@;o;;i˘;i(;o;;i˘;i';@:@valueo: Sass::Script::Value::Number
+;	@	:@original"1:@denominator_units[ :@numerator_units[ ;%i;"
+min-1;i˘;	@	:@children[ :@global0;o;	;@;o;;i˘;i);o;;i˘;i;@:@guarded0o;;o;;@;0;"nth;i˙;0;	@	;o;;{ ; IC;!{ ;"[ ;o;	;@;o;;i˙;i);o;;i˙;i;@;#[o; ;@;"subset-range;i˙;	@	;
+"subset_range;o;	;@;o;;i˙;i%;o;;i˙;i;@o;$	;@;i˙;o;	;@;o;;i˙;i(;o;;i˙;i';@;%o;&
+;	@	;'"2;(@*;)[ ;%i;"
+max-1;i˙;	@	;*[ ;+0;o;	;@;o;;i˙;i);o;;i˙;i;@;,0o;;o;;@;0;"nth;i˚;0;	@	;o;;{ ; IC;!{ ;"[ ;o;	;@;o;;i˚;i";o;;i˚;i;@;#[o; ;@;"
+range;i˚;	@	;
+"
+range;o;	;@;o;;i˚;i;o;;i˚;i;@o;$	;@;i˚;o;	;@;o;;i˚;i!;o;;i˚;i ;@;%o;&
+;	@	;'"1;(@*;)[ ;%i;"
+min-2;i˚;	@	;*[ ;+0;o;	;@;o;;i˚;i";o;;i˚;i;@;,0o;;o;;@;0;"nth;i¸;0;	@	;o;;{ ; IC;!{ ;"[ ;o;	;@;o;;i¸;i";o;;i¸;i;@;#[o; ;@;"
+range;i¸;	@	;
+"
+range;o;	;@;o;;i¸;i;o;;i¸;i;@o;$	;@;i¸;o;	;@;o;;i¸;i!;o;;i¸;i ;@;%o;&
+;	@	;'"2;(@*;)[ ;%i;"
+max-2;i¸;	@	;*[ ;+0;o;	;@;o;;i¸;i";o;;i¸;i;@;,0u:Sass::Tree::IfNodeª[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei˝:@options{ :@operand2o; ;@;i;@;	o; ;@;i;@;	o: Sass::Script::Tree::Literal	;@;i:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i:@offsetiH:@start_poso;;i;iG:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo: Sass::Script::Value::Number
+;@:@original"0:@denominator_units[ :@numerator_units[ ;i ;o;	;@;o;;i;iH;o;;i;i;@:@operator:lte:@operand1o: Sass::Script::Tree::Funcall;@:@splat0:
+@name"compare-browser-versions;i:@kwarg_splat0;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;i;iC;@;@:
+@args[o:!Sass::Script::Tree::Variable;@;""browser;i;@:@underscored_name"browser;o;	;@;o;;i;i2;o;;i;i*;@o;+;@;""
+max-1;i;@;,"
+max_1;o;	;@;o;;i;i:;o;;i;i4;@o;+;@;""
+max-2;i;@;,"
+max_2;o;	;@;o;;i;iB;o;;i;i<;@;o;	;@;o;;i;iH;o;;i;i;@;:and;o; ;@;i;@;	o;
+	;@;i;o;	;@;o;;i;iH;o;;i;iG;@;o;
+;@;"0;@;[ ;i ;o;	;@;o;;i;iI;@7;@;:gte;o; ;@;!0;""compare-browser-versions;i;#0;@;$o;%;&{ ;'IC;({ ;)[ ;o;	;@;o;;i;iC;@7;@;*[o;+;@;""browser;i;@;,"browser;o;	;@;o;;i;i2;o;;i;i*;@o;+;@;""
+min-1;i;@;,"
+min_1;o;	;@;o;;i;i:;o;;i;i4;@o;+;@;""
+min-2;i;@;,"
+min_2;o;	;@;o;;i;iB;o;;i;i<;@;o;	;@;o;;i;iJ;o;;i˝;i;@;:or;o; ;@;i˝;@;	o; ;@;i;@;	o; ;@;i;@;	o;
+	;@;i;o;	;@;o;;i;iH;o;;i;iG;@;o;
+;@;"0;@;[ ;i ;o;	;@;o;;i;iH;o;;i;i;@;;.;o; ;@;!0;""compare-browser-versions;i;#0;@;$o;%;&{ ;'IC;({ ;)[ ;o;	;@;o;;i;iC;@l;@;*[o;+;@;""browser;i;@;,"browser;o;	;@;o;;i;i2;o;;i;i*;@o;+;@;""
+max-1;i;@;,"
+max_1;o;	;@;o;;i;i:;o;;i;i4;@o;+;@;""
+max-2;i;@;,"
+max_2;o;	;@;o;;i;iB;o;;i;i<;@;o;	;@;o;;i;iH;o;;i;i;@;;-;o; ;@;i;@;	o;
+	;@;i;o;	;@;o;;i;iH;o;;i;iG;@;o;
+;@;"0;@;[ ;i ;o;	;@;o;;i;iI;@Ö;@;;;o; ;@;!0;""compare-browser-versions;i;#0;@;$o;%;&{ ;'IC;({ ;)[ ;o;	;@;o;;i;iC;@Ö;@;*[o;+;@;""browser;i;@;,"browser;o;	;@;o;;i;i2;o;;i;i*;@o;+;@;""
+min-1;i;@;,"
+min_1;o;	;@;o;;i;i:;o;;i;i4;@o;+;@;""
+min-2;i;@;,"
+min_2;o;	;@;o;;i;iB;o;;i;i<;@;o;	;@;o;;i;iJ;@_;@;;/;o; ;@;i˝;@;	o; ;@;iˇ;@;	o; ;@;i ;@;	o;
+	;@;i ;o;	;@;o;;i ;iH;o;;i ;iG;@;o;
+;@;"0;@;[ ;i ;o;	;@;o;;i ;iH;o;;i ;i;@;;;o; ;@;!0;""compare-browser-versions;i ;#0;@;$o;%;&{ ;'IC;({ ;)[ ;o;	;@;o;;i ;iC;@π;@;*[o;+;@;""browser;i ;@;,"browser;o;	;@;o;;i ;i2;o;;i ;i*;@o;+;@;""
+max-1;i ;@;,"
+max_1;o;	;@;o;;i ;i:;o;;i ;i4;@o;+;@;""
+max-2;i ;@;,"
+max_2;o;	;@;o;;i ;iB;o;;i ;i<;@;o;	;@;o;;i ;iH;o;;iˇ;i;@;;-;o; ;@;iˇ;@;	o;
+	;@;iˇ;o;	;@;o;;iˇ;iH;o;;iˇ;iG;@;o;
+;@;"0;@;[ ;i ;o;	;@;o;;iˇ;iI;@◊;@;;;o; ;@;!0;""compare-browser-versions;iˇ;#0;@;$o;%;&{ ;'IC;({ ;)[ ;o;	;@;o;;iˇ;iC;@◊;@;*[o;+;@;""browser;iˇ;@;,"browser;o;	;@;o;;iˇ;i2;o;;iˇ;i*;@o;+;@;""
+min-2;iˇ;@;,"
+min_2;o;	;@;o;;iˇ;i:;o;;iˇ;i4;@o;+;@;""
+max-1;iˇ;@;,"
+max_1;o;	;@;o;;iˇ;iB;o;;iˇ;i<;@;o;	;@;o;;i ;iJ;@_;@;;/;o; ;@;i˝;@;	o; ;@;i˛;@;	o;
+	;@;i˛;o;	;@;o;;i˛;iH;o;;i˛;iG;@;o;
+;@;"0;@;[ ;i ;o;	;@;o;;i˛;iH;o;;i˛;i;@;;;o; ;@;!0;""compare-browser-versions;i˛;#0;@;$o;%;&{ ;'IC;({ ;)[ ;o;	;@;o;;i˛;iC;@
+;@;*[o;+;@;""browser;i˛;@;,"browser;o;	;@;o;;i˛;i2;o;;i˛;i*;@o;+;@;""
+min-1;i˛;@;,"
+min_1;o;	;@;o;;i˛;i:;o;;i˛;i4;@o;+;@;""
+max-2;i˛;@;,"
+max_2;o;	;@;o;;i˛;iB;o;;i˛;i<;@;o;	;@;o;;i˛;iH;@_;@;;-;o; ;@;i˝;@;	o;
+	;@;i˝;o;	;@;o;;i˝;iH;o;;i˝;iG;@;o;
+;@;"0;@;[ ;i ;o;	;@;o;;i˝;iI;@_;@;;;o; ;@;!0;""compare-browser-versions;i˝;#0;@;$o;%;&{ ;'IC;({ ;)[ ;o;	;@;o;;i˝;iC;@_;@;*[o;+;@;""browser;i˝;@;,"browser;o;	;@;o;;i˝;i2;o;;i˝;i*;@o;+;@;""
+min-2;i˝;@;,"
+min_2;o;	;@;o;;i˝;i:;o;;i˝;i4;@o;+;@;""
+min-1;i˝;@;,"
+min_1;o;	;@;o;;i˝;iB;o;;i˝;i<;@u:Sass::Tree::IfNodeq[00[o:Sass::Tree::VariableNode:
+@expro: Sass::Script::Tree::Literal	:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei:@source_rangeo:Sass::Source::Range	:
+@file@	:@end_poso:Sass::Source::Position;	i:@offseti#:@start_poso;;	i;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo:Sass::Script::Value::Bool:@options{ ;T:
+@name"found-mismatch;	i;@:@children[ :@global0;
+o;	;@	;o;;	i;i;o;;	i;i;@:@guarded0[o:Sass::Tree::ReturnNode
+:
+@expro;
+	;@;i;o;	;@;o;;i;i;o;;i;i;@;o:Sass::Script::Value::Bool;@;T;i;@:@children[ ;o;	;@;o;;i;i;o;;i;i;@;Qo;<;@;"subset-ranges;iˆ;	@;="subset_ranges;o;	;@;o; ;iˆ;!i7;"o; ;iˆ;!i);#@;o;	;@;o; ;iˆ;!i8;"o; ;iˆ;!i;#@;R["browser"subset-rangeo;@
+;o:'Sass::Script::Tree::UnaryOperation;@;i;	@:@operando;<;@;"found-mismatch;i;	@;="found_mismatch;o;	;@;o; ;i;!i#;"o; ;i;!i;#@;o;	;@;o; ;i;!i#;"o; ;i;!i;#@;C:not;i;	@;
+[ ;o;	;@;o; ;i;!i#;"o; ;i;!i;#@;o;	;@;o; ;iÙ;!i<;"o; ;iÙ;!i;#@;)[[o;<;@;"ranges;iÙ;	@;="ranges;o;	;@;o; ;iÙ;!i*;"o; ;iÙ;!i#;#@0[o;<;@;"subset-ranges;iÙ;	@;="subset_ranges;o;	;@;o; ;iÙ;!i:;"o; ;iÙ;!i,;#@0o;
+;;;i;	@;
+[ ;["¬/* When the same browser is in both maps, then the minimum will be set
+ * to the maximum of the two minimum versions, and the maximum will be
+ * set to the minmum of the two maximum versions. */o;>;T;0;"intersect-browser-ranges;i;	@;
+[o;P;T;i;	@;
+[o;;o;;@;0;"map-get;i;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;i;!i0;"o; ;i;!i;#@;)[o;<;@;"ranges;i;	@;="ranges;o;	;@;o; ;i;!i%;"o; ;i;!i;#@o;<;@;"browser;i;	@;="browser;o;	;@;o; ;i;!i/;"o; ;i;!i';#@;"old-range;i;	@;
+[ ;*0;o;	;@;o; ;i;!i0;"o; ;i;!i;#@;+0u;?L[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"old-range:
+@linei:@options{ :@underscored_name"old_range:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i:@offseti:@start_poso;;i;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheetsu:Sass::Tree::IfNodec[00[o:Sass::Tree::VariableNode:
+@expro: Sass::Script::Tree::Funcall:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:@splat0:
+@name"map-merge:
+@linei:@kwarg_splat0:@options{ :@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@	:@end_poso:Sass::Source::Position;i:@offseti?:@start_poso;;i;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[o:!Sass::Script::Tree::Variable;@	;
+"ranges;i;@:@underscored_name"ranges;o;	;@	;o;;i;i&;o;;i;i;@o:#Sass::Script::Tree::MapLiteral
+;@	;i;@;o;	;@	;o;;i;i=;o;;i;i);@:@pairs[[o;";@	;
+"browser;i;@;#"browser;o;	;@	;o;;i;i1;o;;i;i);@o;";@	;
+"new-range;i;@;#"new_range;o;	;@	;o;;i;i=;o;;i;i3;@;
+"ranges;i;@:@children[ :@global0;o;	;@	;o;;i;i?;o;;i;i;@:@guarded0[o:Sass::Tree::VariableNode:
+@expro: Sass::Script::Tree::Funcall;@:@splat0;"nth;i:@kwarg_splat0;	@	:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;i;i(;o;;i;i;@:
+@args[o; ;@;"old-range;i;	@	;
+"old_range;o;	;@;o;;i;i$;o;;i;i;@o: Sass::Script::Tree::Literal	;@;i;o;	;@;o;;i;i';o;;i;i&;@:@valueo: Sass::Script::Value::Number
+;	@	:@original"1:@denominator_units[ :@numerator_units[ ;&i;"old-min;i;	@	:@children[ :@global0;o;	;@;o;;i;i(;o;;i;i;@:@guarded0o;;o;;@;0;"nth;i;0;	@	;o;; { ;!IC;"{ ;#[ ;o;	;@;o;;i;i(;o;;i;i;@;$[o; ;@;"old-range;i;	@	;
+"old_range;o;	;@;o;;i;i$;o;;i;i;@o;%	;@;i;o;	;@;o;;i;i';o;;i;i&;@;&o;'
+;	@	;("2;)@+;*[ ;&i;"old-max;i;	@	;+[ ;,0;o;	;@;o;;i;i(;o;;i;i;@;-0o;;o;;@;0;"nth;i;0;	@	;o;; { ;!IC;"{ ;#[ ;o;	;@;o;;i;i(;o;;i;i;@;$[o; ;@;"new-range;i;	@	;
+"new_range;o;	;@;o;;i;i$;o;;i;i;@o;%	;@;i;o;	;@;o;;i;i';o;;i;i&;@;&o;'
+;	@	;("1;)@+;*[ ;&i;"new-min;i;	@	;+[ ;,0;o;	;@;o;;i;i(;o;;i;i;@;-0o;;o;;@;0;"nth;i;0;	@	;o;; { ;!IC;"{ ;#[ ;o;	;@;o;;i;i(;o;;i;i;@;$[o; ;@;"new-range;i;	@	;
+"new_range;o;	;@;o;;i;i$;o;;i;i;@o;%	;@;i;o;	;@;o;;i;i';o;;i;i&;@;&o;'
+;	@	;("2;)@+;*[ ;&i;"new-max;i;	@	;+[ ;,0;o;	;@;o;;i;i(;o;;i;i;@;-0o;;o;;@;0;"if;i;0;	@	;o;; { ;!IC;"{ ;#[ ;o;	;@;o;;i;i,;o;;i;i;@;$[o:"Sass::Script::Tree::Operation;@;i;	@	:@operand2o;%	;@;i;o;	;@;o;;i;iS;o;;i;iR;@;&o;'
+;	@	;("0;)@+;*[ ;&i ;o;	;@;o;;i;iS;o;;i;i;@:@operator:gt:@operand1o;;@;0;"compare-browser-versions;i;0;	@	;o;; { ;!IC;"{ ;#[ ;o;	;@;o;;i;iO;@ô;@;$[o; ;@;"browser;i;	@	;
+"browser;o;	;@;o;;i;i:;o;;i;i2;@o; ;@;"old-min;i;	@	;
+"old_min;o;	;@;o;;i;iD;o;;i;i<;@o; ;@;"new-min;i;	@	;
+"new_min;o;	;@;o;;i;iN;o;;i;iF;@o; ;@;"old-min;i;	@	;
+"old_min;o;	;@;o;;i;i!;o;;i;i;@o; ;@;"new-min;i;	@	;
+"new_min;o;	;@;o;;i;i+;o;;i;i#;@;"maximin;i;	@	;+[ ;,0;o;	;@;o;;i;i,;o;;i;i;@;-0o;;o;;@;0;"if;i;0;	@	;o;; { ;!IC;"{ ;#[ ;o;	;@;o;;i;i,;o;;i;i;@;$[o;.;@;i;	@	;/o;%	;@;i;o;	;@;o;;i;iS;o;;i;iR;@;&o;'
+;	@	;("0;)@+;*[ ;&i ;o;	;@;o;;i;iS;o;;i;i;@;0:lt;2o;;@;0;"compare-browser-versions;i;0;	@	;o;; { ;!IC;"{ ;#[ ;o;	;@;o;;i;iO;@€;@;$[o; ;@;"browser;i;	@	;
+"browser;o;	;@;o;;i;i:;o;;i;i2;@o; ;@;"old-max;i;	@	;
+"old_max;o;	;@;o;;i;iD;o;;i;i<;@o; ;@;"new-max;i;	@	;
+"new_max;o;	;@;o;;i;iN;o;;i;iF;@o; ;@;"old-max;i;	@	;
+"old_max;o;	;@;o;;i;i!;o;;i;i;@o; ;@;"new-max;i;	@	;
+"new_max;o;	;@;o;;i;i+;o;;i;i#;@;"minimax;i;	@	;+[ ;,0;o;	;@;o;;i;i,;o;;i;i;@;-0o;;o;;@;0;"map-merge;i;0;	@	;o;; { ;!IC;"{ ;#[ ;o;	;@;o;;i;iF;o;;i;i;@;$[o; ;@;"ranges;i;	@	;
+"ranges;o;	;@;o;;i;i&;o;;i;i;@o:#Sass::Script::Tree::MapLiteral
+;@;i;	@	;o;	;@;o;;i;iD;o;;i;i);@:@pairs[[o; ;@;"browser;i;	@	;
+"browser;o;	;@;o;;i;i1;o;;i;i);@o:$Sass::Script::Tree::ListLiteral;@;i;	@	:@separator:
+space;o;	;@;o;;i;iD;o;;i;i2;@:@elements[o; ;@;"maximin;i;	@	;
+"maximin;o;	;@;o;;i;i;;o;;i;i3;@o; ;@;"minimax;i;	@	;
+"minimax;o;	;@;o;;i;iD;o;;i;i<;@;"ranges;i;	@	;+[ ;,0;o;	;@;o;;i;iF;o;;i;i;@;-0;Qo;<;@;"new-ranges;i;	@;="new_ranges;o;	;@;o; ;i;!i1;"o; ;i;!i&;#@;o;	;@;o; ;i;!i2;"o; ;i;!i;#@;R["browser"new-rangeo;@
+;o;<;@;"ranges;i";	@;="ranges;o;	;@;o; ;i";!i;"o; ;i";!i;#@;i";	@;
+[ ;o;	;@;o; ;i";!i;"o; ;i";!i;#@;o;	;@;o; ;i;!i?;"o; ;i;!i;#@;)[[o;<;@;"ranges;i;	@;="ranges;o;	;@;o; ;i;!i0;"o; ;i;!i);#@0[o;<;@;"new-ranges;i;	@;="new_ranges;o;	;@;o; ;i;!i=;"o; ;i;!i2;#@0o;
+;;;i%;	@;
+[ ;["v/* If passed a map, that will be the new browser ranges.
+ * Otherwise a range map will be created based on the given capability and prefix
+ * using the `browser-ranges($capability, $prefix)` function.
+ *
+ * If there are current ranges in scope and the new ranges have some overlap
+ * with the current, 
+ *
+ * If there is no overlap, then the content will not be rendered. */o;I;T;0;"with-browser-ranges;i-;	@;
+[o;;o;,	;@;i.;o;	;@;o; ;i.;!i;"o; ;i.;!i;#@;@;"new-ranges;i.;	@;
+[ ;*0;o;	;@;o; ;i.;!i;"o; ;i.;!i	;#@;+0u;?Ö[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei/:@options{ :@operand2o: Sass::Script::Tree::Literal	;@;i/:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i/:@offseti':@start_poso;;i/;i$:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo: Sass::Script::Value::String:
+@type:identifier;@;"map;o;	;@;o;;i/;i(;o;;i/;i;@:@operator:eq:@operand1o: Sass::Script::Tree::Funcall;@:@splat0:
+@name"type-of;i/:@kwarg_splat0;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;i/;i ;@;@:
+@args[o:!Sass::Script::Tree::Variable;@;!"capability;i/;@:@underscored_name"capability;o;	;@;o;;i/;i;o;;i/;i;@u:Sass::Tree::IfNodeÆ[00[o:Sass::Tree::VariableNode:
+@expro: Sass::Script::Tree::Funcall:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:@splat0:
+@name"browser-ranges:
+@linei2:@kwarg_splat0:@options{ :@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@	:@end_poso:Sass::Source::Position;i2:@offseti;:@start_poso;;i2;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[o:!Sass::Script::Tree::Variable;@	;
+"capability;i2;@:@underscored_name"capability;o;	;@	;o;;i2;i1;o;;i2;i&;@o;";@	;
+"prefix;i2;@;#"prefix;o;	;@	;o;;i2;i:;o;;i2;i3;@;
+"new-ranges;i2;@:@children[ :@global0;o;	;@	;o;;i2;i;;o;;i2;i;@:@guarded0[o:Sass::Tree::VariableNode:
+@expro;*;@;!"capability;i0;@;+"capability;o;	;@;o;;i0;i";o;;i0;i;@;!"new-ranges;i0;@:@children[ :@global0;o;	;@;o;;i0;i";o;;i0;i;@:@guarded0u;?…[o: Sass::Script::Tree::Funcall:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:@splat0:
+@name"has-browser-subset:
+@linei5:@kwarg_splat0:@options{ :@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;	i5:@offsetiF:@start_poso;;	i5;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[o:!Sass::Script::Tree::Variable;@;"current-browser-versions;	i5;@	:@underscored_name"current_browser_versions;o;	;@;o;;	i5;i8;o;;	i5;i;@o; ;@;"new-ranges;	i5;@	;!"new_ranges;o;	;@;o;;	i5;iE;o;;	i5;i:;@u:Sass::Tree::IfNodeµ[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"debug-browser-support:
+@linei::@options{ :@underscored_name"debug_browser_support:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i::@offseti):@start_poso;;i:;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets0[o:Sass::Tree::CommentNode
+:
+@type:normal;i;;	@	:@children[ :@value[
+""/* Excluding content because o: Sass::Script::Tree::Funcall;@:@splat0;"inspect;i;:@kwarg_splat0;	@	:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;i;;i'4;o;;i;;i4;0:
+@args[o; ;@;"new-ranges;i;;	@	;
+"new_ranges;o;	;@;o;;i;;i&4;o;;i;;i4;0"  is not included within
+   o;;@;0;"inspect;i;;0;	@	; o;!;"{ ;#IC;${ ;%[ ;o;	;@;o;;i;;ii4;o;;i;;iG4;0;&[o; ;@;"current-browser-versions;i;;	@	;
+"current_browser_versions;o;	;@;o;;i;;ih4;o;;i;;iO4;0" */[	o:Sass::Tree::VariableNode:
+@expro; ;@;"current-browser-versions;	i6;@	;!"current_browser_versions;o;	;@;o;;	i6;i0;o;;	i6;i;@;"old-ranges;	i6;@	:@children[ :@global0;o;	;@;o;;	i6;i0;o;;	i6;i;@:@guarded0o;#;$o; ;@;0;"intersect-browser-ranges;	i7;
+0;@	;o;;{ ;IC;{ ;[ ;o;	;@;o;;	i7;iW;o;;	i7;i%;@;[o; ;@;"old-ranges;	i7;@	;!"old_ranges;o;	;@;o;;	i7;iI;o;;	i7;i>;@o; ;@;"new-ranges;	i7;@	;!"new_ranges;o;	;@;o;;	i7;iV;o;;	i7;iK;@;"current-browser-versions;	i7;@	;%[ ;&T;o;	;@;o;;	i7;i_;o;;	i7;i;@;'0o:Sass::Tree::ContentNode	;	i8;@	;%[ ;o;	;@;o;;	i8;i;o;;	i8;i
+;@o;#;$o; ;@;"old-ranges;	i9;@	;!"old_ranges;o;	;@;o;;	i9;i0;o;;	i9;i%;@;"current-browser-versions;	i9;@	;%[ ;&T;o;	;@;o;;	i9;i8;o;;	i9;i;@;'0;o;	;@;o; ;i-;!iH;"o; ;i-;!i;#@;)[[o;<;@;"capability;i-;	@;="capability;o;	;@;o; ;i-;!i,;"o; ;i-;!i!;#@0[o;<;@;"prefix;i-;	@;="prefix;o;	;@;o; ;i-;!i5;"o; ;i-;!i.;#@o;<;@;"current-prefix;i-;	@;="current_prefix;o;	;@;o; ;i-;!iF;"o; ;i-;!i7;#@o;
+;;;i@;	@;
+[ ;["∂/* Returns true if the prefixed usage stats for the capability exceed the threshold
+ * or if the minimum version for a supported browser would require a prefix for the capability. */o;>;T;0;"use-prefix;iB;	@;
+[o;;o;;@;0;"prefix-usage;iC;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iC;!iG;"o; ;iC;!i;#@;)[o;<;@;"prefix;iC;	@;="prefix;o;	;@;o; ;iC;!i$;"o; ;iC;!i;#@o;<;@;"capability;iC;	@;="capability;o;	;@;o; ;iC;!i1;"o; ;iC;!i&;#@o;<;@;"capability-options;iC;	@;="capability_options;o;	;@;o; ;iC;!iF;"o; ;iC;!i3;#@;"
+usage;iC;	@;
+[ ;*0;o;	;@;o; ;iC;!iG;"o; ;iC;!i	;#@;+0u;?–[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineiD:@options{ :@operand2o:!Sass::Script::Tree::Variable;@:
+@name"threshold;iD;@:@underscored_name"threshold:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iD:@offseti:@start_poso;;iD;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets;o;	;@;o;;iD;i ;o;;iD;i;@:@operator:gt:@operand1o;
+;@;"
+usage;iD;@;"
+usage;o;	;@;o;;iD;i;@;@u:Sass::Tree::IfNodeT[00[o:Sass::Tree::EachNode:@has_childrenT:
+@lineiG:@options{ :@children[u:Sass::Tree::IfNodeı[o: Sass::Script::Tree::Funcall:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:@splat0:
+@name"
+index:
+@lineiH:@kwarg_splat0:@options{ :@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;	iH:@offseti4:@start_poso;;	iH;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[o:!Sass::Script::Tree::Variable;@;"supported-browsers;	iH;@	:@underscored_name"supported_browsers;o;	;@;o;;	iH;i);o;;	iH;i;@o; ;@;"browser;	iH;@	;!"browser;o;	;@;o;;	iH;i3;o;;	iH;i+;@0[o:Sass::Tree::VariableNode:
+@expro; ;@;0;"map-get;	iI;
+0;@	;o;;{ ;IC;{ ;[ ;o;	;@;o;;	iI;iH;o;;	iI;i;@;[o; ;@;"browser-minimum-versions;	iI;@	;!"browser_minimum_versions;o;	;@;o;;	iI;i=;o;;	iI;i$;@o; ;@;"browser;	iI;@	;!"browser;o;	;@;o;;	iI;iG;o;;	iI;i?;@;"min-version;	iI;@	:@children[ :@global0;o;	;@;o;;	iI;iH;o;;	iI;i;@:@guarded0u:Sass::Tree::IfNodeÏ	[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"min-version:
+@lineiJ:@options{ :@underscored_name"min_version:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iJ:@offseti:@start_poso;;iJ;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets0[o:Sass::Tree::VariableNode:
+@expro: Sass::Script::Tree::Funcall;@:@splat0;"browser-requires-prefix;iK:@kwarg_splat0;	@	:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;iK;iq;o;;iK;i ;@:
+@args[	o; ;@;"browser;iK;	@	;
+"browser;o;	;@;o;;iK;i@;o;;iK;i8;@o; ;@;"min-version;iK;	@	;
+"min_version;o;	;@;o;;iK;iN;o;;iK;iB;@o; ;@;"capability;iK;	@	;
+"capability;o;	;@;o;;iK;i[;o;;iK;iP;@o; ;@;"capability-options;iK;	@	;
+"capability_options;o;	;@;o;;iK;ip;o;;iK;i];@;"actual-prefix;iK;	@	:@children[ :@global0;o;	;@;o;;iK;iq;o;;iK;i;@:@guarded0u:Sass::Tree::IfNodeÒ[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineiL:@options{ :@operand2o; ;@;iL;@;	o:!Sass::Script::Tree::Variable;@:
+@name"actual-prefix;iL;@:@underscored_name"actual_prefix:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iL:@offseti@:@start_poso;;iL;i2:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets;o;	;@;o;;iL;iA;o;;iL;i';@:@operator:eq:@operand1o;
+;@;"prefix;iL;@;"prefix;o;	;@;o;;iL;i.;@;@;o;	;@;o;;iL;iA;o;;iL;i;@;:and;o;
+;@;"actual-prefix;iL;@;"actual_prefix;o;	;@;o;;iL;i";@;@0[o:Sass::Tree::ReturnNode
+:
+@expro:$Sass::Script::Tree::ListLiteral;@;iM;@:@separator:
+space;o;	;@;o;;iM;i/;o;;iM;i;@:@elements[o;
+;@;"browser;iM;@;"browser;o;	;@;o;;iM;i";o;;iM;i;@o;
+;@;"min-version;iM;@;"min_version;o;	;@;o;;iM;i/;o;;iM;i#;@;iM;@:@children[ ;o;	;@;o;;iM;i/;o;;iM;i;@:
+@listo: Sass::Script::Tree::Funcall:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:@splat0:
+@name"browsers;iG:@kwarg_splat0;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iG:@offseti-:@start_poso;;iG;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[o:!Sass::Script::Tree::Variable;@;"prefix;iG;@:@underscored_name"prefix;o;	;@;o;;iG;i,;o;;iG;i%;@;o;	;@;o;;iG;i.;o;;iG;i
+;@:
+@vars["browser[o:Sass::Tree::ReturnNode
+:
+@expro;
+;@;"
+usage;iE;@;"
+usage;o;	;@;o;;iE;i;o;;iE;i;@;iE;@:@children[ ;o;	;@;o;;iE;i;o;;iE;i
+;@o;@
+;o;,	;@;iS;o;	;@;o; ;iS;!i;"o; ;iS;!i;#@;@d;iS;	@;
+[ ;o;	;@;o; ;iS;!i;"o; ;iS;!i;#@;o;	;@;o; ;iB;!io;"o; ;iB;!i;#@;)[	[o;<;@;"prefix;iB;	@;="prefix;o;	;@;o; ;iB;!i";"o; ;iB;!i;#@0[o;<;@;"capability;iB;	@;="capability;o;	;@;o; ;iB;!i/;"o; ;iB;!i$;#@0[o;<;@;"threshold;iB;	@;="threshold;o;	;@;o; ;iB;!i;;"o; ;iB;!i1;#@0[o;<;@;"capability-options;iB;	@;="capability_options;o;	;@;o; ;iB;!iP;"o; ;iB;!i=;#@o;<;@;"default-capability-options;iB;	@;="default_capability_options;o;	;@;o; ;iB;!im;"o; ;iB;!iR;#@o;>;T;0;"prefix-identifier;iV;	@;
+[o;@
+;o;;@;0;"unquote;iW;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iW;!iG;"o; ;iW;!i;#@;)[o;K;@;Lo;K;@;Lo;K;@;Lo;,	;@;iW;o;	;@;o; ;iW;!iF;"o; ;iW;!iE;#@;o;4;;5;	@;" ;iW;	@;Mo;<;@;"
+ident;iW;	@;="
+ident;o;	;@;o; ;iW;!iD;"o; ;iW;!i>;#@;Oo;,	;@;iW;o;	;@;o; ;iW;!i<;"o; ;iW;!i<;#@;o;4;;5;	@;" ;o;	;@;o; ;iW;!iF;"@=;#@;iW;	@;Mo;;@;0;"if;iW;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iW;!i;;"o; ;iW;!i%;#@;)[o;<;@;"prefix;iW;	@;="prefix;o;	;@;o; ;iW;!i/;"o; ;iW;!i(;#@o;,	;@;iW;o;	;@;o; ;iW;!i4;"o; ;iW;!i1;#@;o;4;;5;	@;"-o;,	;@;iW;o;	;@;o; ;iW;!i:;"o; ;iW;!i6;#@;@;Oo;,	;@;iW;o;	;@;o; ;iW;!i#;"o; ;iW;!i#;#@;o;4;;5;	@;" ;o;	;@;o; ;iW;!iF;"@_;#@;iW;	@;Mo;<;@;"prefix;iW;	@;="prefix;o;	;@;o; ;iW;!i";"o; ;iW;!i;#@;Oo;,	;@;iW;o;	;@;o; ;iW;!i;"o; ;iW;!i;#@;o;4;;5;	@;" ;o;	;@;o; ;iW;!iF;"@m;#@;iW;	@;
+[ ;o;	;@;o; ;iW;!iG;"o; ;iW;!i;#@;o;	;@;o; ;iV;!iD;"o; ;iV;!i;#@;)[[o;<;@;"
+ident;iV;	@;="
+ident;o;	;@;o; ;iV;!i(;"o; ;iV;!i";#@0[o;<;@;"prefix;iV;	@;="prefix;o;	;@;o; ;iV;!i1;"o; ;iV;!i*;#@o;<;@;"current-prefix;iV;	@;="current_prefix;o;	;@;o; ;iV;!iB;"o; ;iV;!i3;#@o;
+;;;iZ;	@;
+[ ;["u/* Output a property and value using the current prefix.
+ * It will be unprefixed if $current-prefix is null. */o;I;T;0;"prefix-prop;i\;	@;
+[o:Sass::Tree::PropNode;[o;;@;0;"prefix-identifier;i];0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;i];!i/;"o; ;i];!i
+;#@;)[o;<;@;"property;i];	@;="property;o;	;@;o; ;i];!i%;"o; ;i];!i;#@o;<;@;"prefix;i];	@;="prefix;o;	;@;o; ;i];!i.;"o; ;i];!i';#@;i];	@;
+[ :@value_source_rangeo;	;@;o; ;i];!i8;"o; ;i];!i2;#@;o;	;@;@Ø;"o; ;i];!i;#@:@prop_syntax:new:
+@tabsi :@name_source_rangeo;	;@;o; ;i];!i0;"@≤;#@;o;<;@;"
+value;i];	@;="
+value;o;	;@;o; ;i];!i8;"o; ;i];!i2;#@;o;	;@;o; ;i\;!iF;"o; ;i\;!i;#@;)[[o;<;@;"property;i\;	@;="property;o;	;@;o; ;i\;!i";"o; ;i\;!i;#@0[o;<;@;"
+value;i\;	@;="
+value;o;	;@;o; ;i\;!i*;"o; ;i\;!i$;#@0[o;<;@;"prefix;i\;	@;="prefix;o;	;@;o; ;i\;!i3;"o; ;i\;!i,;#@o;<;@;"current-prefix;i\;	@;="current_prefix;o;	;@;o; ;i\;!iD;"o; ;i\;!i5;#@o;
+;;;i`;	@;
+[ ;["/* Emit a set of properties with the prefix governed by the capability and usage threshold given.
+ *
+ * Example:
+ *
+ *     @include prefixed-properties(css-animation, $animation-support-threshold,
+ *       (animation-name: foo, animation-duration: 2s)
+ *     ); */o;I;T;0;"prefixed-properties;ig;	@;
+[o;S;T;0;"with-each-prefix;ih;0;	@;
+[o;P;T;ii;	@;
+[o;S;0;"prefix-prop;ij;0;	@;
+[ ;o;;{ ;IC;{ ;[ ;o;	;@;o; ;ij;!i/;"o; ;ij;!i;#@;)[o;<;@;"	prop;ij;	@;="	prop;o;	;@;o; ;ij;!i&;"o; ;ij;!i!;#@o;<;@;"
+value;ij;	@;="
+value;o;	;@;o; ;ij;!i.;"o; ;ij;!i(;#@;Qo;<;@;"properties;ii;	@;="properties;o;	;@;o; ;ii;!i,;"o; ;ii;!i!;#@;o;	;@;o; ;ii;!i-;"o; ;ii;!i
+;#@;R["	prop"
+value;o;;{ ;IC;{ ;[ ;o;	;@;o; ;ih;!iP;"o; ;ih;!i;#@;)[o;<;@;"capability;ih;	@;="capability;o;	;@;o; ;ih;!i-;"o; ;ih;!i";#@o;<;@;"threshold;ih;	@;="threshold;o;	;@;o; ;ih;!i9;"o; ;ih;!i/;#@o;<;@;"capability-options;ih;	@;="capability_options;o;	;@;o; ;ih;!iN;"o; ;ih;!i;;#@;o;	;@;o; ;ig;!iy;"o; ;ig;!i;#@;)[	[o;<;@;"capability;ig;	@;="capability;o;	;@;o; ;ig;!i,;"o; ;ig;!i!;#@0[o;<;@;"threshold;ig;	@;="threshold;o;	;@;o; ;ig;!i8;"o; ;ig;!i.;#@0[o;<;@;"properties;ig;	@;="properties;o;	;@;o; ;ig;!iE;"o; ;ig;!i:;#@0[o;<;@;"capability-options;ig;	@;="capability_options;o;	;@;o; ;ig;!iZ;"o; ;ig;!iG;#@o;<;@;"default-capability-options;ig;	@;="default_capability_options;o;	;@;o; ;ig;!iw;"o; ;ig;!i\;#@o;
+;;;ip;	@;
+[ ;["/* @private */o;>;T;0;"warn-about-old-variables;iq;	@;
+[	o;;o;7;@;ir;	@;80;o;	;@;o; ;ir;!i ;"o; ;ir;!i ;#@;:[ ;"old-variables-in-use;ir;	@;
+[ ;*0;o;	;@;o; ;ir;!i!;"o; ;ir;!i	;#@;+0o;P;T;is;	@;
+[u;?›[o: Sass::Script::Tree::Funcall:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:@splat0:
+@name"global-variable-exists:
+@lineiz:@kwarg_splat0:@options{ :@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;	iz:@offseti8:@start_poso;;	iz;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[o:!Sass::Script::Tree::Variable;@;"old-variable-name;	iz;@	:@underscored_name"old_variable_name;o;	;@;o;;	iz;i7;o;;	iz;i%;@0[o:Sass::Tree::VariableNode:
+@expro; ;@;0;"append;	i{;
+0;@	;o;;{ ;IC;{ ;[ ;o;	;@;o;;	i|;iS;o;;	i{;i#;@;[o; ;@;"old-variables-in-use;	i{;@	;!"old_variables_in_use;o;	;@;o;;	i{;i?;o;;	i{;i*;@o; ;@;0;"unquote;	i|;
+0;@	;o;;{ ;IC;{ ;[ ;o;	;@;o;;	i|;iK;o;;	i|;i*;@;[o:,Sass::Script::Tree::StringInterpolation;@:@aftero: Sass::Script::Tree::Literal	;@;	i|;o;	;@;o;;	i|;iJ;o;;	i|;iI;@:@valueo: Sass::Script::Value::String:
+@type:string;@	;'" ;	i|;@	:	@mido; ;@;"old-variable-name;	i|;@	;!"old_variable_name;o;	;@;o;;	i|;iH;o;;	i|;i6;@:@beforeo;&	;@;	i|;o;	;@;o;;	i|;i4;o;;	i|;i2;@;'o;(;);*;@	;'"$;o;	;@;o;;	i|;iJ;@H;@o;&	;@;	i|;o;	;@;o;;	i|;iR;o;;	i|;iM;@;'o;(;):identifier;@	;'"
+comma;"old-variables-in-use;	i{;@	:@children[ :@global0;o;	;@;o;;	i|;iS;o;;	i{;i;@:@guarded0;Qo;7;@;it;	@;8;9;o;	;@;o; ;it;!i$;"o; ;it;!i;#@;:[o;,	;@;it;o;	;@;o; ;it;!i$;"o; ;it;!i;#@;o;4;;;;	@;"legacy-support-for-ieo;,	;@;it;o;	;@;o; ;it;!i<;"o; ;it;!i&;#@;o;4;;;;	@;"legacy-support-for-ie6o;,	;@;it;o;	;@;o; ;it;!iT;"o; ;it;!i>;#@;o;4;;;;	@;"legacy-support-for-ie7o;,	;@;iu;o;	;@;o; ;iu;!i%;"o; ;iu;!i;#@;o;4;;;;	@;"legacy-support-for-ie8o;,	;@;iu;o;	;@;o; ;iu;!iA;"o; ;iu;!i';#@;o;4;;;;	@;"legacy-support-for-mozillao;,	;@;iu;o;	;@;o; ;iu;!i\;"o; ;iu;!iC;#@;o;4;;;;	@;"legacy-support-for-webkito;,	;@;iv;o;	;@;o; ;iv;!i/;"o; ;iv;!i;#@;o;4;;;;	@;"%experimental-support-for-mozillao;,	;@;iv;o;	;@;o; ;iv;!iP;"o; ;iv;!i1;#@;o;4;;;;	@;"$experimental-support-for-webkito;,	;@;iw;o;	;@;o; ;iw;!i-;"o; ;iw;!i;#@;o;4;;;;	@;"#experimental-support-for-operao;,	;@;iw;o;	;@;o; ;iw;!iQ;"o; ;iw;!i/;#@;o;4;;;;	@;"'experimental-support-for-microsofto;,	;@;ix;o;	;@;o; ;ix;!i-;"o; ;ix;!i;#@;o;4;;;;	@;"#experimental-support-for-khtmlo;,	;@;ix;o;	;@;o; ;ix;!iK;"o; ;ix;!i/;#@;o;4;;;;	@;"!experimental-support-for-svg;o;	;@;o; ;iy;!i;"o; ;is;!i;#@;R["old-variable-nameu;?{[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei:@options{ :@operand2o: Sass::Script::Tree::Literal	;@;i:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i:@offseti-:@start_poso;;i;i,:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo: Sass::Script::Value::Number
+;@:@original"0:@denominator_units[ :@numerator_units[ ;i ;o;	;@;o;;i;i.;o;;i;i;@:@operator:gt:@operand1o: Sass::Script::Tree::Funcall;@:@splat0:
+@name"length;i:@kwarg_splat0;@:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;i;i);@;@:
+@args[o:!Sass::Script::Tree::Variable;@;""old-variables-in-use;i;@:@underscored_name"old_variables_in_use;o;	;@;o;;i;i(;o;;i;i;@0[o:Sass::Tree::WarnNode
+:
+@expro; ;@;iÄ;@;	o;
+	;@;iÉ;o;	;@;o;;iÉ;i^;o;;iÉ;i;@;o: Sass::Script::Value::String:
+@type:string;@;"QDetails: http://compass-style.org/help/documentation/tuning-vendor-prefixes/;o;	;@;o;;iÑ;i;o;;iÄ;i;@;:	plus;o; ;@;iÄ;@;	o:,Sass::Script::Tree::StringInterpolation;@:@aftero;
+	;@;iÇ;o;	;@;o;;iÇ;iD;o;;iÇ;iB;@;o;/;0;1;@;".;iÇ;@:	@mido;+;@;""old-variables-in-use;iÇ;@;,"old_variables_in_use;o;	;@;o;;iÇ;iA;o;;iÇ;i,;@:@beforeo;
+	;@;iÇ;o;	;@;o;;iÇ;i*;o;;iÇ;i;@;o;/;0;1;@;"are no longer supported: ;o;	;@;o;;iÇ;iE;@D;@;o;	;@;o;;iÇ;iE;@2;@;;2;o; ;@;iÄ;@;	o;
+	;@;iÅ;o;	;@;o;;iÅ;i8;o;;iÅ;i;@;o;/;0;1;@;"+The following configuration variables ;o;	;@;o;;iÅ;i9;@2;@;;2;o;
+	;@;iÄ;o;	;@;o;;iÄ;iI;@2;@;o;/;0;1;@;"<Compass has changed how browser support is configured. ;iÄ;@:@children[ ;o;	;@;o;;iÑ;i;o;;iÄ;i
+;@o;@
+;o;<;@;"old-variables-in-use;iÖ;	@;="old_variables_in_use;o;	;@;o; ;iÖ;!i%;"o; ;iÖ;!i;#@;iÖ;	@;
+[ ;o;	;@;o; ;iÖ;!i%;"o; ;iÖ;!i;#@;o;	;@;o; ;iq;!i+;"o; ;iq;!i;#@;)[ o;
+;;;ià;	@;
+[ ;["/* @private */o;>;T;0;"warn-about-pie-removal;iâ;	@;
+[u;?›[o: Sass::Script::Tree::Funcall:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:@splat0:
+@name"global-variable-exists:
+@lineiä:@kwarg_splat0:@options{ :@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ :@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;	iä:@offseti@:@start_poso;;	iä;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:
+@args[o: Sass::Script::Tree::Literal	;@;	iä;o;	;@;o;;	iä;i?;o;;	iä;i#;@:@valueo: Sass::Script::Value::String:
+@type:identifier;@	;!"!experimental-support-for-pie0[o:Sass::Tree::WarnNode
+:
+@expro; 	;@;	iã;o;	;@;o;;	iã;i5;o;;	iã;i;@;!o;";#:string;@	;!"(Compass no longer supports css3pie.;	iã;@	:@children[ ;o;	;@;o;;	iã;i5;o;;	iã;i
+;@o;@
+;o;,	;@;iç;o;	;@;o; ;iç;!i;"o; ;iç;!i;#@;@∆;iç;	@;
+[ ;o;	;@;o; ;iç;!i;"o; ;iç;!i;#@;o;	;@;o; ;iâ;!i);"o; ;iâ;!i;#@;)[ o;
+;;;iê;	@;
+[ ;["û/* Enable browser support debugging within the content block.
+ * Or you can enable it for the whole stylesheet by setting `$debug-browser-support` to true. */o;I;T;0;"#with-browser-support-debugging;ií;	@;
+[	o;;o;<;@;"debug-browser-support;iì;	@;="debug_browser_support;o;	;@;o; ;iì;!i/;"o; ;iì;!i;#@;"current-status;iì;	@;
+[ ;*0;o;	;@;o; ;iì;!i/;"o; ;iì;!i	;#@;+0o;;o;,	;@;iî;o;	;@;o; ;iî;!i$;"o; ;iî;!i ;#@;@∆;"debug-browser-support;iî;	@;
+[ ;*T;o;	;@;o; ;iî;!i,;"o; ;iî;!i	;#@;+0o;T	;iï;	@;
+[ ;o;	;@;o; ;iï;!i;"o; ;iï;!i;#@o;;o;<;@;"current-status;iñ;	@;="current_status;o;	;@;o; ;iñ;!i/;"o; ;iñ;!i ;#@;"debug-browser-support;iñ;	@;
+[ ;*T;o;	;@;o; ;iñ;!i7;"o; ;iñ;!i	;#@;+0;o;	;@;o; ;ií;!i,;"o; ;ií;!i;#@;)[ o;
+;;;iô;	@;
+[ ;["</* Set a default value if the given arglist is empty */o;>;T;0;"set-arglist-default;iö;	@;
+[o;;o;;@;0;"
+index;iõ;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iõ;!i0;"o; ;iõ;!i;#@;)[o;<;@;"arglist;iõ;	@;="arglist;o;	;@;o; ;iõ;!i&;"o; ;iõ;!i;#@o;,	;@;iõ;o;	;@;o; ;iõ;!i/;"o; ;iõ;!i(;#@;o;4;;;;	@;"default;"default-index;iõ;	@;
+[ ;*0;o;	;@;o; ;iõ;!i0;"o; ;iõ;!i	;#@;+0u;?c[o:!Sass::Script::Tree::Variable:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@name"default-index:
+@lineiú:@options{ :@underscored_name"default_index:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iú:@offseti:@start_poso;;iú;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets0[o:Sass::Tree::VariableNode:
+@expro: Sass::Script::Tree::Funcall;@:@splat0;"set-nth;iù:@kwarg_splat0;	@	:@keywordso:Sass::Util::NormalizedMap:@key_strings{ :	@mapIC:OrderedHash{ :
+@keys[ ;o;	;@;o;;iù;i?;o;;iù;i;@:
+@args[o; ;@;"arglist;iù;	@	;
+"arglist;o;	;@;o;;iù;i$;o;;iù;i;@o; ;@;"default-index;iù;	@	;
+"default_index;o;	;@;o;;iù;i4;o;;iù;i&;@o; ;@;"default;iù;	@	;
+"default;o;	;@;o;;iù;i>;o;;iù;i6;@;"arglist;iù;	@	:@children[ :@global0;o;	;@;o;;iû;i;o;;iù;i;@:@guarded0o;@
+;o;;@;0;"if;iü;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iü;!i<;"o; ;iü;!i;#@;)[o;A;@;iü;	@;Bo;,	;@;iü;o;	;@;o; ;iü;!i';"o; ;iü;!i&;#@;o;-
+;	@;."0;/@A;0[ ;i ;o;	;@;o; ;iü;!i';"o; ;iü;!i;#@;C;H;Eo;;@;0;"length;iü;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iü;!i#;"@@;#@;)[o;<;@;"arglist;iü;	@;="arglist;o;	;@;o; ;iü;!i";"o; ;iü;!i;#@o;<;@;"arglist;iü;	@;="arglist;o;	;@;o; ;iü;!i1;"o; ;iü;!i);#@o;<;@;"default;iü;	@;="default;o;	;@;o; ;iü;!i;;"o; ;iü;!i3;#@;iü;	@;
+[ ;o;	;@;o; ;iü;!i<;"o; ;iü;!i;#@;o;	;@;o; ;iö;!i8;"o; ;iö;!i;#@;)[[o;<;@;"arglist;iö;	@;="arglist;o;	;@;o; ;iö;!i,;"o; ;iö;!i$;#@0[o;<;@;"default;iö;	@;="default;o;	;@;o; ;iö;!i6;"o; ;iö;!i.;#@0o;
+;;;i£;	@;
+[ ;["/* @private */o;;o;;@;0;"warn-about-old-variables;i§;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;i§;!i?;"o; ;i§;!i%;#@;)[ ;"!old-variable-warnings-issued;i§;	@;
+[ ;*0;o;	;@;o; ;i§;!iH;"o; ;i§;!i;#@;+To;
+;;;i¶;	@;
+[ ;["/* @private */o;;o;;@;0;"warn-about-pie-removal;iß;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;iß;!i;;"o; ;iß;!i#;#@;)[ ;"pie-removal-warning-issued;iß;	@;
+[ ;*0;o;	;@;o; ;iß;!iD;"o; ;iß;!i;#@;+To;
+;;;i©;	@;
+[ ;["/* @private */o;>;T;0;"(warn-about-useless-prefix-arguments;i™;	@;
+[u;?≈[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@linei´:@options{ :@operand2o; ;@;i´;@;	o: Sass::Script::Tree::Literal	;@;i´:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;i´:@offseti`:@start_poso;;i´;i\:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo:Sass::Script::Value::Null;@;0;o;	;@;o;;i´;ia;o;;i´;iO;@:@operator:neq:@operand1o:!Sass::Script::Tree::Variable;@:
+@name"official;i´;@:@underscored_name"official;o;	;@;o;;i´;iX;@;@;o;	;@;o;;i´;ia;o;;i´;i;@;:or;o; ;@;i´;@;	o; ;@;i´;@;	o;
+	;@;i´;o;	;@;o;;i´;iK;o;;i´;iG;@;@;o;	;@;o;;i´;iL;o;;i´;i=;@;;;o;;@;"
+khtml;i´;@;"
+khtml;o;	;@;o;;i´;iC;@&;@;o;	;@;o;;i´;iL;@;@;; ;o; ;@;i´;@;	o; ;@;i´;@;	o;
+	;@;i´;o;	;@;o;;i´;i9;o;;i´;i5;@;@;o;	;@;o;;i´;i:;o;;i´;i/;@;;;o;;@;"o;i´;@;"o;o;	;@;o;;i´;i1;@6;@;o;	;@;o;;i´;i:;@;@;; ;o; ;@;i´;@;	o; ;@;i´;@;	o;
+	;@;i´;o;	;@;o;;i´;i+;o;;i´;i';@;@;o;	;@;o;;i´;i,;o;;i´;i;@;;;o;;@;"webkit;i´;@;"webkit;o;	;@;o;;i´;i#;@F;@;o;	;@;o;;i´;i,;@;@;; ;o; ;@;i´;@;	o;
+	;@;i´;o;	;@;o;;i´;i;o;;i´;i;@;@;o;	;@;o;;i´;i;@;@;;;o;;@;"moz;i´;@;"moz;o;	;@;o;;i´;i;@;@0[o:Sass::Tree::WarnNode
+:
+@expro; ;@;i¨;@;	o;
+	;@;i≠;o;	;@;o;;i≠;i6;o;;i≠;i;@;o: Sass::Script::Value::String:
+@type:string;@;")will be removed in the next release.;o;	;@;o;;i≠;i6;o;;i¨;i;@;:	plus;o;
+	;@;i¨;o;	;@;o;;i¨;iP;@e;@;o;#;$;%;@;"CBrowser prefix arguments to this mixin are no longer used and ;i¨;@:@children[ ;o;	;@;o;;i≠;i6;o;;i¨;i
+;@o;@
+;o;,	;@;iØ;o;	;@;o; ;iØ;!i;"o; ;iØ;!i;#@;@∆;iØ;	@;
+[ ;o;	;@;o; ;iØ;!i;"o; ;iØ;!i;#@;o;	;@;o; ;i™;!ix;"o; ;i™;!i;#@;)[
+[o;<;@;"moz;i™;	@;="moz;o;	;@;o; ;i™;!i8;"o; ;i™;!i4;#@o;,	;@;i™;o;	;@;o; ;i™;!i>;"o; ;i™;!i:;#@;@[o;<;@;"webkit;i™;	@;="webkit;o;	;@;o; ;i™;!iG;"o; ;i™;!i@;#@o;,	;@;i™;o;	;@;o; ;i™;!iM;"o; ;i™;!iI;#@;@[o;<;@;"o;i™;	@;="o;o;	;@;o; ;i™;!iQ;"o; ;i™;!iO;#@o;,	;@;i™;o;	;@;o; ;i™;!iW;"o; ;i™;!iS;#@;@[o;<;@;"
+khtml;i™;	@;="
+khtml;o;	;@;o; ;i™;!i_;"o; ;i™;!iY;#@o;,	;@;i™;o;	;@;o; ;i™;!ie;"o; ;i™;!ia;#@;@[o;<;@;"official;i™;	@;="official;o;	;@;o; ;i™;!ip;"o; ;i™;!ig;#@o;,	;@;i™;o;	;@;o; ;i™;!iv;"o; ;i™;!ir;#@;@o;
+;;;i≤;	@;
+[ ;["Y/* coerce a list to be comma delimited or make a new, empty comma delimited list. */o;>;T;0;"comma-list;i≥;	@;
+[o;@
+;o;;@;0;"	join;i¥;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;i¥;!i&;"o; ;i¥;!i;#@;)[o;7;@;i¥;	@;80;o;	;@;o; ;i¥;!i;"o; ;i¥;!i;#@;:[ o;<;@;"	list;i¥;	@;="	list;o;	;@;o; ;i¥;!i;"o; ;i¥;!i;#@o;,	;@;i¥;o;	;@;o; ;i¥;!i%;"o; ;i¥;!i ;#@;o;4;;;;	@;"
+comma;i¥;	@;
+[ ;o;	;@;o; ;i¥;!i&;"o; ;i¥;!i;#@;o;	;@;o; ;i≥;!i&;"o; ;i≥;!i;#@;)[[o;<;@;"	list;i≥;	@;="	list;o;	;@;o; ;i≥;!i ;"o; ;i≥;!i;#@o;7;@;i≥;	@;80;o;	;@;o; ;i≥;!i#;"o; ;i≥;!i#;#@;:[ o;
+;;;i∑;	@;
+[ ;["l/* @private Returns the legacy value for a given box-model
+ * - Used by background-clip and -origin. */o;>;T;0;"legacy-box;iπ;	@;
+[
+o;;o;;@;0;"unquote;i∫;0;	@;o;;{ ;IC;{ ;[ ;o;	;@;o; ;i∫;!i;"o; ;i∫;!i;#@;)[o;<;@;"box;i∫;	@;="box;o;	;@;o; ;i∫;!i;"o; ;i∫;!i;#@;"box;i∫;	@;
+[ ;*0;o;	;@;o; ;i∫;!i;"o; ;i∫;!i	;#@;+0u;?Ã[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineiª:@options{ :@operand2o: Sass::Script::Tree::Literal	;@;iª:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iª:@offseti:@start_poso;;iª;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo: Sass::Script::Value::String:
+@type:identifier;@;"padding-box;o;	;@;o;;iª;i ;o;;iª;i;@:@operator:eq:@operand1o:!Sass::Script::Tree::Variable;@:
+@name"box;iª;@:@underscored_name"box;o;	;@;o;;iª;i;@;@0[o:Sass::Tree::VariableNode:
+@expro;
+	;@;iª;o;	;@;o;;iª;i/;o;;iª;i(;@;o;;;;@;"padding; "box;iª;@:@children[ :@global0;o;	;@;o;;iª;i/;o;;iª;i#;@:@guarded0u;? [o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineiº:@options{ :@operand2o: Sass::Script::Tree::Literal	;@;iº:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iº:@offseti:@start_poso;;iº;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo: Sass::Script::Value::String:
+@type:identifier;@;"border-box;o;	;@;o;;iº;i;o;;iº;i;@:@operator:eq:@operand1o:!Sass::Script::Tree::Variable;@:
+@name"box;iº;@:@underscored_name"box;o;	;@;o;;iº;i;@;@0[o:Sass::Tree::VariableNode:
+@expro;
+	;@;iº;o;	;@;o;;iº;i-;o;;iº;i';@;o;;;;@;"border; "box;iº;@:@children[ :@global0;o;	;@;o;;iº;i-;o;;iº;i";@:@guarded0u;?Ã[o:"Sass::Script::Tree::Operation:@filename"Z/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets/compass/_support.scss:
+@lineiΩ:@options{ :@operand2o: Sass::Script::Tree::Literal	;@;iΩ:@source_rangeo:Sass::Source::Range	:
+@file@:@end_poso:Sass::Source::Position;iΩ:@offseti:@start_poso;;iΩ;i:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
+@hash{ :
+@root"D/Library/Ruby/Gems/1.8/gems/compass-core-1.0.0.rc.1/stylesheets:@valueo: Sass::Script::Value::String:
+@type:identifier;@;"content-box;o;	;@;o;;iΩ;i ;o;;iΩ;i;@:@operator:eq:@operand1o:!Sass::Script::Tree::Variable;@:
+@name"box;iΩ;@:@underscored_name"box;o;	;@;o;;iΩ;i;@;@0[o:Sass::Tree::VariableNode:
+@expro;
+	;@;iΩ;o;	;@;o;;iΩ;i/;o;;iΩ;i(;@;o;;;;@;"content; "box;iΩ;@:@children[ :@global0;o;	;@;o;;iΩ;i/;o;;iΩ;i#;@:@guarded0o;@
+;o;<;@;"box;iæ;	@;="box;o;	;@;o; ;iæ;!i;"o; ;iæ;!i;#@;iæ;	@;
+[ ;o;	;@;o; ;iæ;!i;"o; ;iæ;!i;#@;o;	;@;o; ;iπ;!i!;"o; ;iπ;!i;#@;)[[o;<;@;"box;iπ;	@;="box;o;	;@;o; ;iπ;!i;"o; ;iπ;!i;#@0;o;	;@;o; ;i;!i;"o; ;i;!i;#@

@@ -1,0 +1,39 @@
+
+
+.leftmenulist {
+	
+	.header {
+		background: $purple-dark;
+		color: #fff;
+		@extend %montserrat-bold-webfont;
+		padding: 10px;
+		background-position: top right;
+		background-repeat: no-repeat;
+		background-size: contain;
+	}
+	
+	ul {
+		list-style: none;
+		margin-bottom: 40px;
+		
+		li {
+			padding: 10px;
+			border-bottom: 1px solid $purple-dark;
+		}
+	}
+}
+
+.filter {
+	@extend .leftmenulist;
+	.header { background-image: url(/assets/images/icon-filter.svg); }
+}
+
+.jobalerts {
+	@extend .leftmenulist;
+	.header { background-image: url(/assets/images/icon-jobalerts.svg); }
+}
+
+.reviews {
+	@extend .leftmenulist;
+	.header { background-image: url(/assets/images/icon-reviews.svg); }
+}
