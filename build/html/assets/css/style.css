@@ -1,4 +1,4 @@
-/* line 14, ../../../../../../../../.rvm/gems/ruby-2.1.2/gems/susy-2.1.3/sass/susy/language/susy/_box-sizing.scss */
+/* line 14, ../../../../../../../../../.rvm/gems/ruby-2.1.2/gems/susy-2.1.3/sass/susy/language/susy/_box-sizing.scss */
 *, *:before, *:after {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -51,7 +51,7 @@ a:hover {
   font-style: normal;
 }
 /* line 32, ../compass/sass/modules/_mixin.scss */
-h1, .leftmenulist .header, .filter .header, .jobalerts .header, .reviews .header {
+h1, section .leftmenulist .header, section .filter .header, section .jobalerts .header, section .reviews .header, section .leftmenulist .footer, section .filter .footer, section .jobalerts .footer, section .reviews .footer {
   font-family: "montserrat-bold", "arial";
 }
 
@@ -151,8 +151,18 @@ div.body {
   max-width: 980px;
   margin-left: auto;
   margin-right: auto;
+  background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4gPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiBncmFkaWVudFVuaXRzPSJvYmplY3RCb3VuZGluZ0JveCIgeDE9IjAuMCIgeTE9IjAuNSIgeDI9IjEuMCIgeTI9IjAuNSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzY2NjZmZiIgc3RvcC1vcGFjaXR5PSIwLjI1Ii8+PHN0b3Agb2Zmc2V0PSI2NC4yODU3MSUiIHN0b3AtY29sb3I9IiNiM2IzZmYiIHN0b3Atb3BhY2l0eT0iMC4yNSIvPjxzdG9wIG9mZnNldD0iNjQuMjg1NzElIiBzdG9wLWNvbG9yPSIjMDAwMDAwIiBzdG9wLW9wYWNpdHk9IjAuMCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZCkiIC8+PC9zdmc+IA=='), url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4gPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiBncmFkaWVudFVuaXRzPSJvYmplY3RCb3VuZGluZ0JveCIgeDE9IjAuNSIgeTE9IjAuMCIgeDI9IjAuNSIgeTI9IjEuMCI+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMDAwMDAwIiBzdG9wLW9wYWNpdHk9IjAuNSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzAwMDAwMCIgc3RvcC1vcGFjaXR5PSIwLjAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyYWQpIiAvPjwvc3ZnPiA=');
+  background-size: 100%;
+  background-image: -webkit-gradient(linear, 0% 50%, 100% 50%, color-stop(0%, rgba(102, 102, 255, 0.25)), color-stop(64.28571%, rgba(179, 179, 255, 0.25)), color-stop(64.28571%, rgba(0, 0, 0, 0))), -webkit-gradient(linear, 50% 0%, 50% 1, color-stop(100%, rgba(0, 0, 0, 0.5)), color-stop(100%, rgba(0, 0, 0, 0)));
+  background-image: -moz-linear-gradient(left, rgba(102, 102, 255, 0.25), rgba(179, 179, 255, 0.25) 64.28571%, rgba(0, 0, 0, 0) 64.28571%), -moz-linear-gradient(top, rgba(0, 0, 0, 0.5) 1px, rgba(0, 0, 0, 0) 1px);
+  background-image: -webkit-linear-gradient(left, rgba(102, 102, 255, 0.25), rgba(179, 179, 255, 0.25) 64.28571%, rgba(0, 0, 0, 0) 64.28571%), -webkit-linear-gradient(top, rgba(0, 0, 0, 0.5) 1px, rgba(0, 0, 0, 0) 1px);
+  background-image: linear-gradient(to right, rgba(102, 102, 255, 0.25), rgba(179, 179, 255, 0.25) 64.28571%, rgba(0, 0, 0, 0) 64.28571%), linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 1px, rgba(0, 0, 0, 0) 1px);
+  background-size: 8.58896%, 100% 24px;
+  background-origin: content-box, border-box;
+  background-clip: content-box, border-box;
+  background-position: left top;
 }
-/* line 12, ../../../../../../../../.rvm/gems/ruby-2.1.2/gems/susy-2.1.3/sass/susy/output/support/_clearfix.scss */
+/* line 12, ../../../../../../../../../.rvm/gems/ruby-2.1.2/gems/susy-2.1.3/sass/susy/output/support/_clearfix.scss */
 div.body:after {
   content: " ";
   display: block;
@@ -162,7 +172,9 @@ div.body:after {
 /* line 10, ../compass/sass/layout/_core.scss */
 header {
   width: 100%;
-  float: right;
+  float: left;
+  margin-left: 0;
+  margin-right: 0;
   background: #ccbcf3;
   height: 0;
   padding: 2% 5% 15.5% 5%;
@@ -183,21 +195,19 @@ nav {
 
 /* line 28, ../compass/sass/layout/_core.scss */
 section {
-  width: 23.40426%;
+  width: 22.69939%;
   float: left;
   margin-bottom: 2%;
 }
 
 /* line 33, ../compass/sass/layout/_core.scss */
 article {
-  width: 74.46809%;
+  width: 74.23313%;
   float: right;
-  background: #5d4b9d;
-  padding: 2% 5%;
   margin-bottom: 2%;
 }
 
-/* line 40, ../compass/sass/layout/_core.scss */
+/* line 38, ../compass/sass/layout/_core.scss */
 footer {
   width: 100%;
   float: left;
@@ -207,8 +217,32 @@ footer {
   padding: 2% 5%;
 }
 
-/* line 5, ../compass/sass/layout/_leftmenu.scss */
-.leftmenulist .header, .filter .header, .jobalerts .header, .reviews .header {
+/* line 3, ../compass/sass/layout/_maincontent.scss */
+article .adverts {
+  width: 100%;
+  float: left;
+  margin-left: 0;
+  margin-right: 0;
+  overflow: hidden;
+  *zoom: 1;
+}
+/* line 7, ../compass/sass/layout/_maincontent.scss */
+article .adverts .advert {
+  width: 30.57851%;
+  float: left;
+  height: 0;
+  padding-bottom: 100%;
+  background: url(/assets/images/adspace-inlisting.gif) top left no-repeat;
+  background-size: contain;
+}
+/* line 14, ../compass/sass/layout/_maincontent.scss */
+article .adverts .advert:last-of-type {
+  width: 30.57851%;
+  float: right;
+}
+
+/* line 6, ../compass/sass/layout/_leftmenu.scss */
+section .leftmenulist .header, section .filter .header, section .jobalerts .header, section .reviews .header {
   background: #5e3088;
   color: #fff;
   padding: 10px;
@@ -216,28 +250,45 @@ footer {
   background-repeat: no-repeat;
   background-size: contain;
 }
-/* line 15, ../compass/sass/layout/_leftmenu.scss */
-.leftmenulist ul, .filter ul, .jobalerts ul, .reviews ul {
+/* line 16, ../compass/sass/layout/_leftmenu.scss */
+section .leftmenulist ul, section .filter ul, section .jobalerts ul, section .reviews ul {
   list-style: none;
   margin-bottom: 40px;
 }
-/* line 19, ../compass/sass/layout/_leftmenu.scss */
-.leftmenulist ul li, .filter ul li, .jobalerts ul li, .reviews ul li {
+/* line 20, ../compass/sass/layout/_leftmenu.scss */
+section .leftmenulist ul li, section .filter ul li, section .jobalerts ul li, section .reviews ul li {
   padding: 10px;
   border-bottom: 1px solid #5e3088;
 }
-
-/* line 28, ../compass/sass/layout/_leftmenu.scss */
-.filter .header {
+/* line 26, ../compass/sass/layout/_leftmenu.scss */
+section .leftmenulist .footer, section .filter .footer, section .jobalerts .footer, section .reviews .footer {
+  background: #ccbcf3;
+  color: #fff;
+  padding: 10px 10px 10px 50px;
+  top: -41px;
+}
+/* line 37, ../compass/sass/layout/_leftmenu.scss */
+section .filter .header {
   background-image: url(/assets/images/icon-filter.svg);
 }
-
-/* line 33, ../compass/sass/layout/_leftmenu.scss */
-.jobalerts .header {
+/* line 42, ../compass/sass/layout/_leftmenu.scss */
+section .jobalerts .header {
   background-image: url(/assets/images/icon-jobalerts.svg);
 }
-
-/* line 38, ../compass/sass/layout/_leftmenu.scss */
-.reviews .header {
+/* line 47, ../compass/sass/layout/_leftmenu.scss */
+section .reviews .header {
   background-image: url(/assets/images/icon-reviews.svg);
+}
+/* line 50, ../compass/sass/layout/_leftmenu.scss */
+section .advert {
+  width: 100%;
+  float: left;
+  margin-left: 0;
+  margin-right: 0;
+  margin-bottom: 40px;
+}
+/* line 53, ../compass/sass/layout/_leftmenu.scss */
+section .advert img {
+  width: 100%;
+  height: auto;
 }

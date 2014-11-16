@@ -47,6 +47,7 @@
                 <li><a href="">Hand Car Wash</a></li>
                 <li><a href="">Properties</a></li>
                 </ul>
+            	<div class="footer">Register to sign up for free job alerts</div>
             </div>
             
         	<div class="reviews">
@@ -55,10 +56,21 @@
                 <li><a href="">Hand Car Wash</a></li>
                 <li><a href="">Properties</a></li>
                 </ul>
+            	<div class="footer">Register to review car washes</div>
             </div>
+            
+            <div class="advert"><img src="assets/images/adspace-skyscraper.gif" /></div>
         </section>
         
-        <article>hello</article>
+        <article>
+        	<h2>Car Wash for Sale</h2>
+            
+            <div class="adverts">
+            	<div class="advert"></div>
+            	<div class="advert"></div>
+            	<div class="advert"></div>
+            </div>
+        </article>
         
         <footer>hello</footer>
     </div>

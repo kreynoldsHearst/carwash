@@ -8,7 +8,7 @@ div.body {
 }
 
 header {
-	@include span(full last);
+	@include span(full);
 	background: $purple-light;
 	height: 0;
 	padding: 2% 5% 15.5% 5%;
@@ -32,8 +32,6 @@ section {
 
 article {
 	@include span(9 of 12 last);
-	background: $purple-mid;
-	padding: 2% 5%; 
 	margin-bottom: 2%;
 }
 

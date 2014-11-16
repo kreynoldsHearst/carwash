@@ -17,12 +17,14 @@
 $susy: (
   global-box-sizing: border-box,
   use-custom: (rem: true),
+  math: fluid,
+  output: float,
   columns: 12,
-  column-width: 60px,
-  gutters: 20px/60px,
+  column-width: 58px,
+  gutters: 30px/54px,
   gutter-position: outside,
   debug: (
-  	image: hide  
+  	image: show  
   )
 );
 
@@ -36,4 +38,5 @@ $susy: (
 @import 'base/_typography';
 
 @import 'layout/_core';
+@import 'layout/_maincontent';
 @import 'layout/_leftmenu';
