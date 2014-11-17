@@ -7,10 +7,10 @@ article {
 		.advert {
 			@include span(3 of 9);
 			height: 0;
-			padding-bottom: 100%;
+			padding-bottom: 30.5785124%;
 			background: url(/assets/images/adspace-inlisting.gif) top left no-repeat;
 			background-size: contain;
-			
+
 			&:last-of-type {
 				@include span(3 of 9 last);
 			}

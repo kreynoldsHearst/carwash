@@ -20,11 +20,10 @@ $susy: (
   math: fluid,
   output: float,
   columns: 12,
-  column-width: 58px,
   gutters: 30px/54px,
-  gutter-position: outside,
+  gutter-position: after,
   debug: (
-  	image: show  
+  	image: hide  
   )
 );
 
