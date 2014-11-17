@@ -1,5 +1,33 @@
 
 article {
+	.filterBox {
+		@include span(full);
+		color: #ffffff;
+		padding: 10px 20px;
+		background: $purple-dark;
+		margin-bottom: 4%; 
+	}
+	
+	.listing {
+		@include span(full);
+		padding: 2%;
+		background: $purple-light;
+		border-bottom: 10px $purple-dark solid;
+		margin-bottom: 4%;
+		
+		.listing-photo {
+			@include span(2 of 9);
+			height: 0;
+			padding-bottom: 19.00826426%;
+			background: red;
+			
+			img {
+				width: 100%;
+				height: auto;
+			}
+		}
+	}
+	
 	.adverts {
 		@include span(full);
 		@include clearfix;

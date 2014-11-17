@@ -63,7 +63,15 @@
         </section>
         
         <article>
-        	<h2>Car Wash for Sale</h2>
+        	<div class="filterBox">Filter</div>
+            
+            <h2>Car Wash for Sale</h2>
+            
+            <?php for($i=0; $i<4; $i++) { ?>
+            <div class="listing">
+            	<div class="listing-photo"><img src="assets/images/listing-photo.jpg" /></div>
+            </div>
+            <?php } ?>
             
             <div class="adverts">
             	<div class="advert"></div>

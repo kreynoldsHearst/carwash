@@ -1,4 +1,4 @@
-/* line 14, ../../../../../../../../../../Library/Ruby/Gems/1.8/gems/susy-2.1.3/sass/susy/language/susy/_box-sizing.scss */
+/* line 14, ../../../../../../../../../.rvm/gems/ruby-2.1.2/gems/susy-2.1.3/sass/susy/language/susy/_box-sizing.scss */
 *, *:before, *:after {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -51,7 +51,7 @@ a:hover {
   font-style: normal;
 }
 /* line 32, ../compass/sass/modules/_mixin.scss */
-h1, section .leftmenulist .header, section .filter .header, section .jobalerts .header, section .reviews .header, section .leftmenulist .footer, section .filter .footer, section .jobalerts .footer, section .reviews .footer {
+h1, h2, section .leftmenulist .header, section .filter .header, section .jobalerts .header, section .reviews .header, section .leftmenulist .footer, section .filter .footer, section .jobalerts .footer, section .reviews .footer {
   font-family: "montserrat-bold", "arial";
 }
 
@@ -116,26 +116,52 @@ h1 {
 }
 
 /* line 23, ../compass/sass/base/_typography.scss */
+h2 {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: normal;
+  width: 100%;
+  float: left;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 7px 10px;
+  background: #5e3088;
+  margin-bottom: 4%;
+}
+@media (min-width: 0) and (max-width: 480px) {
+  /* line 23, ../compass/sass/base/_typography.scss */
+  h2 {
+    font-size: 4vw;
+  }
+}
+@media (min-width: 480px) and (max-width: 1024px) {
+  /* line 23, ../compass/sass/base/_typography.scss */
+  h2 {
+    font-size: 2.4vw;
+  }
+}
+
+/* line 34, ../compass/sass/base/_typography.scss */
 nav {
   margin-bottom: 2%;
 }
-/* line 26, ../compass/sass/base/_typography.scss */
+/* line 37, ../compass/sass/base/_typography.scss */
 nav ul {
   display: block;
   list-style: none;
 }
-/* line 29, ../compass/sass/base/_typography.scss */
+/* line 40, ../compass/sass/base/_typography.scss */
 nav ul li {
   display: inline-block;
 }
-/* line 32, ../compass/sass/base/_typography.scss */
+/* line 43, ../compass/sass/base/_typography.scss */
 nav ul li a:link, nav ul li a:visited, nav ul li a:active {
   display: block;
   padding: 10px 15px;
   color: #000000;
   text-decoration: none;
 }
-/* line 38, ../compass/sass/base/_typography.scss */
+/* line 49, ../compass/sass/base/_typography.scss */
 nav ul li a:link:hover, nav ul li a:link.active, nav ul li a:visited:hover, nav ul li a:visited.active, nav ul li a:active:hover, nav ul li a:active.active {
   background: #5e3088;
   color: #ffffff;
@@ -143,7 +169,7 @@ nav ul li a:link:hover, nav ul li a:link.active, nav ul li a:visited:hover, nav 
 
 /* line 2, ../compass/sass/layout/_core.scss */
 body {
-  background: #ddd;
+  background: #ebe3fd;
 }
 
 /* line 6, ../compass/sass/layout/_core.scss */
@@ -152,7 +178,7 @@ div.body {
   margin-left: auto;
   margin-right: auto;
 }
-/* line 12, ../../../../../../../../../../Library/Ruby/Gems/1.8/gems/susy-2.1.3/sass/susy/output/support/_clearfix.scss */
+/* line 12, ../../../../../../../../../.rvm/gems/ruby-2.1.2/gems/susy-2.1.3/sass/susy/output/support/_clearfix.scss */
 div.body:after {
   content: " ";
   display: block;
@@ -213,6 +239,42 @@ footer {
 }
 
 /* line 3, ../compass/sass/layout/_maincontent.scss */
+article .filterBox {
+  width: 100%;
+  float: left;
+  margin-left: 0;
+  margin-right: 0;
+  color: #ffffff;
+  padding: 10px 20px;
+  background: #5e3088;
+  margin-bottom: 4%;
+}
+/* line 11, ../compass/sass/layout/_maincontent.scss */
+article .listing {
+  width: 100%;
+  float: left;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 2%;
+  background: #ccbcf3;
+  border-bottom: 10px #5e3088 solid;
+  margin-bottom: 4%;
+}
+/* line 18, ../compass/sass/layout/_maincontent.scss */
+article .listing .listing-photo {
+  width: 19.00826%;
+  float: left;
+  margin-right: 4.13223%;
+  height: 0;
+  padding-bottom: 19.00826426%;
+  background: red;
+}
+/* line 24, ../compass/sass/layout/_maincontent.scss */
+article .listing .listing-photo img {
+  width: 100%;
+  height: auto;
+}
+/* line 31, ../compass/sass/layout/_maincontent.scss */
 article .adverts {
   width: 100%;
   float: left;
@@ -221,7 +283,7 @@ article .adverts {
   overflow: hidden;
   *zoom: 1;
 }
-/* line 7, ../compass/sass/layout/_maincontent.scss */
+/* line 35, ../compass/sass/layout/_maincontent.scss */
 article .adverts .advert {
   width: 30.57851%;
   float: left;
@@ -231,7 +293,7 @@ article .adverts .advert {
   background: url(/assets/images/adspace-inlisting.gif) top left no-repeat;
   background-size: contain;
 }
-/* line 14, ../compass/sass/layout/_maincontent.scss */
+/* line 42, ../compass/sass/layout/_maincontent.scss */
 article .adverts .advert:last-of-type {
   width: 30.57851%;
   float: right;

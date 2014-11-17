@@ -20,6 +20,17 @@ h1 {
 	background-size: contain;
 }
 
+h2 {
+	color: #ffffff;; 
+	@extend %montserrat-bold-webfont;
+	@include fontsize(24);
+	font-weight: normal;
+	@include span(full);
+	padding: 7px 10px;
+	background: $purple-dark;
+	margin-bottom: 4%; 
+}
+
 nav {
 	margin-bottom: 2%;
 	
