@@ -3,11 +3,13 @@ section {
 		
 	.leftmenulist {
 		
+		margin-bottom: 15%;
+			
 		.header {
 			background: $purple-dark;
 			color: #fff;
 			@extend %montserrat-bold-webfont;
-			padding: 10px;
+			padding: 4.5%;
 			background-position: top right;
 			background-repeat: no-repeat;
 			background-size: contain;
@@ -15,10 +17,9 @@ section {
 		
 		ul {
 			list-style: none;
-			margin-bottom: 40px;
 			
 			li {
-				padding: 10px;
+				padding: 4.5%;
 				border-bottom: 1px solid $purple-dark;
 			}
 		}
@@ -27,8 +28,8 @@ section {
 			background: $purple-light;
 			color: #fff;
 			@extend %montserrat-bold-webfont;
-			padding: 10px 10px 10px 50px;
-			top: -41px;
+			padding: 4.5% 4.5% 4.5% 22.5%;
+			top: -1px;
 		}
 	}
 	
@@ -49,7 +50,7 @@ section {
 	
 	.advert {
 		@include span(full); 
-		margin-bottom: 40px;
+		margin-bottom: 6%;
 		img {
 			width: 100%;
 			height: auto;

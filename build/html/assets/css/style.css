@@ -124,7 +124,7 @@ h2 {
   float: left;
   margin-left: 0;
   margin-right: 0;
-  padding: 7px 10px;
+  padding: 1.183% 1.3%;
   background: #5e3088;
   margin-bottom: 4%;
 }
@@ -217,7 +217,7 @@ section {
   width: 22.69939%;
   float: left;
   margin-right: 3.06748%;
-  margin-bottom: 2%;
+  margin-bottom: 6%;
 }
 
 /* line 35, ../compass/sass/layout/_core.scss */
@@ -225,7 +225,7 @@ article {
   width: 74.23313%;
   float: right;
   margin-right: 0;
-  margin-bottom: 2%;
+  margin-bottom: 6%;
 }
 
 /* line 40, ../compass/sass/layout/_core.scss */
@@ -245,7 +245,7 @@ article .filterBox {
   margin-left: 0;
   margin-right: 0;
   color: #ffffff;
-  padding: 10px 20px;
+  padding: 2.5%;
   background: #5e3088;
   margin-bottom: 4%;
 }
@@ -300,53 +300,56 @@ article .adverts .advert:last-of-type {
   margin-right: 0;
 }
 
-/* line 6, ../compass/sass/layout/_leftmenu.scss */
+/* line 4, ../compass/sass/layout/_leftmenu.scss */
+section .leftmenulist, section .filter, section .jobalerts, section .reviews {
+  margin-bottom: 15%;
+}
+/* line 8, ../compass/sass/layout/_leftmenu.scss */
 section .leftmenulist .header, section .filter .header, section .jobalerts .header, section .reviews .header {
   background: #5e3088;
   color: #fff;
-  padding: 10px;
+  padding: 4.5%;
   background-position: top right;
   background-repeat: no-repeat;
   background-size: contain;
 }
-/* line 16, ../compass/sass/layout/_leftmenu.scss */
+/* line 18, ../compass/sass/layout/_leftmenu.scss */
 section .leftmenulist ul, section .filter ul, section .jobalerts ul, section .reviews ul {
   list-style: none;
-  margin-bottom: 40px;
 }
-/* line 20, ../compass/sass/layout/_leftmenu.scss */
+/* line 21, ../compass/sass/layout/_leftmenu.scss */
 section .leftmenulist ul li, section .filter ul li, section .jobalerts ul li, section .reviews ul li {
-  padding: 10px;
+  padding: 4.5%;
   border-bottom: 1px solid #5e3088;
 }
-/* line 26, ../compass/sass/layout/_leftmenu.scss */
+/* line 27, ../compass/sass/layout/_leftmenu.scss */
 section .leftmenulist .footer, section .filter .footer, section .jobalerts .footer, section .reviews .footer {
   background: #ccbcf3;
   color: #fff;
-  padding: 10px 10px 10px 50px;
-  top: -41px;
+  padding: 4.5% 4.5% 4.5% 22.5%;
+  top: -1px;
 }
-/* line 37, ../compass/sass/layout/_leftmenu.scss */
+/* line 38, ../compass/sass/layout/_leftmenu.scss */
 section .filter .header {
   background-image: url(/assets/images/icon-filter.svg);
 }
-/* line 42, ../compass/sass/layout/_leftmenu.scss */
+/* line 43, ../compass/sass/layout/_leftmenu.scss */
 section .jobalerts .header {
   background-image: url(/assets/images/icon-jobalerts.svg);
 }
-/* line 47, ../compass/sass/layout/_leftmenu.scss */
+/* line 48, ../compass/sass/layout/_leftmenu.scss */
 section .reviews .header {
   background-image: url(/assets/images/icon-reviews.svg);
 }
-/* line 50, ../compass/sass/layout/_leftmenu.scss */
+/* line 51, ../compass/sass/layout/_leftmenu.scss */
 section .advert {
   width: 100%;
   float: left;
   margin-left: 0;
   margin-right: 0;
-  margin-bottom: 40px;
+  margin-bottom: 6%;
 }
-/* line 53, ../compass/sass/layout/_leftmenu.scss */
+/* line 54, ../compass/sass/layout/_leftmenu.scss */
 section .advert img {
   width: 100%;
   height: auto;

@@ -29,12 +29,12 @@ nav {
 
 section {
 	@include span(3 of 12);
-	margin-bottom: 2%;
+	margin-bottom: 6%;
 }
 
 article {
 	@include span(9 of 12 last);
-	margin-bottom: 2%;
+	margin-bottom: 6%;
 }
 
 footer {
