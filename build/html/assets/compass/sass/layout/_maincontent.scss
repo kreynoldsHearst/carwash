@@ -12,19 +12,51 @@ article {
 		@include span(full);
 		padding: 2%;
 		background: $purple-light;
-		border-bottom: 10px $purple-dark solid;
 		margin-bottom: 4%;
 		
-		.listing-photo {
-			@include span(2 of 9);
-			height: 0;
-			padding-bottom: 19.00826426%;
-			background: red;
-			
-			img {
-				width: 100%;
-				height: auto;
+		.listingInner {
+			@include span(full);
+			background: #ffffff;
+			padding: 2%;
+			@include clearfix;
+			margin-bottom: 2%;
+		
+			.listing-photo {
+				@include span(2 of 9);
+				height: 0;
+				padding-bottom: 19.00826426%;
+				
+				img {
+					width: 100%;
+					height: auto;
+				}
 			}
+			
+			.listingInfo {
+				@include fontsize(11, 1.2);
+				@include span(6 of 9);
+				
+				.listingInfoDetailsLeft {
+					float: left;
+					width: 40%;
+				}
+				
+				.listingInfoDetailsRight {
+					float: left;
+					left: 10%;
+					width: 60%;
+				}
+			}
+		}
+			
+		.listingContact {
+			width: 104%;
+			clear: both;
+			color: #ffffff;
+			padding: 2% 3%;
+			background: $purple-dark url(/assets/images/expand.svg) center center no-repeat;
+			background-size: contain;
+			margin: 0 -2%;
 		}
 	}
 	

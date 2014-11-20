@@ -50,8 +50,8 @@ a:hover {
   font-weight: normal;
   font-style: normal;
 }
-/* line 32, ../compass/sass/modules/_mixin.scss */
-h1, h2, section .leftmenulist .header, section .filter .header, section .jobalerts .header, section .reviews .header, section .leftmenulist .footer, section .filter .footer, section .jobalerts .footer, section .reviews .footer {
+/* line 33, ../compass/sass/modules/_mixin.scss */
+h1, h2, h3, b, section .leftmenulist .header, section .filter .header, section .jobalerts .header, section .reviews .header, section .leftmenulist .footer, section .filter .footer, section .jobalerts .footer, section .reviews .footer {
   font-family: "montserrat-bold", "arial";
 }
 
@@ -62,7 +62,7 @@ h1, h2, section .leftmenulist .header, section .filter .header, section .jobaler
   font-weight: normal;
   font-style: normal;
 }
-/* line 32, ../compass/sass/modules/_mixin.scss */
+/* line 33, ../compass/sass/modules/_mixin.scss */
 body {
   font-family: "montserrat-regular", "arial";
 }
@@ -71,6 +71,7 @@ body {
 body {
   line-height: 1;
   font-size: 14px;
+  line-height: 1;
   color: #666;
   font-weight: normal;
 }
@@ -91,6 +92,7 @@ body {
 h1 {
   color: #5e3088;
   font-size: 50px;
+  line-height: 1;
   font-weight: normal;
   width: 100%;
   float: left;
@@ -119,6 +121,7 @@ h1 {
 h2 {
   color: #ffffff;
   font-size: 24px;
+  line-height: 1;
   font-weight: normal;
   width: 100%;
   float: left;
@@ -142,26 +145,56 @@ h2 {
 }
 
 /* line 34, ../compass/sass/base/_typography.scss */
+h3 {
+  color: #5e3088;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: normal;
+  width: 100%;
+  float: left;
+  margin-left: 0;
+  margin-right: 0;
+  margin-bottom: 4%;
+}
+@media (min-width: 0) and (max-width: 480px) {
+  /* line 34, ../compass/sass/base/_typography.scss */
+  h3 {
+    font-size: 3.66667vw;
+  }
+}
+@media (min-width: 480px) and (max-width: 1024px) {
+  /* line 34, ../compass/sass/base/_typography.scss */
+  h3 {
+    font-size: 2.2vw;
+  }
+}
+
+/* line 43, ../compass/sass/base/_typography.scss */
+b {
+  font-weight: normal;
+}
+
+/* line 48, ../compass/sass/base/_typography.scss */
 nav {
   margin-bottom: 2%;
 }
-/* line 37, ../compass/sass/base/_typography.scss */
+/* line 51, ../compass/sass/base/_typography.scss */
 nav ul {
   display: block;
   list-style: none;
 }
-/* line 40, ../compass/sass/base/_typography.scss */
+/* line 54, ../compass/sass/base/_typography.scss */
 nav ul li {
   display: inline-block;
 }
-/* line 43, ../compass/sass/base/_typography.scss */
+/* line 57, ../compass/sass/base/_typography.scss */
 nav ul li a:link, nav ul li a:visited, nav ul li a:active {
   display: block;
   padding: 10px 15px;
   color: #000000;
   text-decoration: none;
 }
-/* line 49, ../compass/sass/base/_typography.scss */
+/* line 63, ../compass/sass/base/_typography.scss */
 nav ul li a:link:hover, nav ul li a:link.active, nav ul li a:visited:hover, nav ul li a:visited.active, nav ul li a:active:hover, nav ul li a:active.active {
   background: #5e3088;
   color: #ffffff;
@@ -257,24 +290,75 @@ article .listing {
   margin-right: 0;
   padding: 2%;
   background: #ccbcf3;
-  border-bottom: 10px #5e3088 solid;
   margin-bottom: 4%;
 }
-/* line 18, ../compass/sass/layout/_maincontent.scss */
-article .listing .listing-photo {
+/* line 17, ../compass/sass/layout/_maincontent.scss */
+article .listing .listingInner {
+  width: 100%;
+  float: left;
+  margin-left: 0;
+  margin-right: 0;
+  background: #ffffff;
+  padding: 2%;
+  overflow: hidden;
+  *zoom: 1;
+  margin-bottom: 2%;
+}
+/* line 24, ../compass/sass/layout/_maincontent.scss */
+article .listing .listingInner .listing-photo {
   width: 19.00826%;
   float: left;
   margin-right: 4.13223%;
   height: 0;
   padding-bottom: 19.00826426%;
-  background: red;
 }
-/* line 24, ../compass/sass/layout/_maincontent.scss */
-article .listing .listing-photo img {
+/* line 29, ../compass/sass/layout/_maincontent.scss */
+article .listing .listingInner .listing-photo img {
   width: 100%;
   height: auto;
 }
-/* line 31, ../compass/sass/layout/_maincontent.scss */
+/* line 35, ../compass/sass/layout/_maincontent.scss */
+article .listing .listingInner .listingInfo {
+  font-size: 11px;
+  line-height: 1.2;
+  width: 65.28926%;
+  float: left;
+  margin-right: 4.13223%;
+}
+@media (min-width: 0) and (max-width: 480px) {
+  /* line 35, ../compass/sass/layout/_maincontent.scss */
+  article .listing .listingInner .listingInfo {
+    font-size: 1.83333vw;
+  }
+}
+@media (min-width: 480px) and (max-width: 1024px) {
+  /* line 35, ../compass/sass/layout/_maincontent.scss */
+  article .listing .listingInner .listingInfo {
+    font-size: 1.1vw;
+  }
+}
+/* line 39, ../compass/sass/layout/_maincontent.scss */
+article .listing .listingInner .listingInfo .listingInfoDetailsLeft {
+  float: left;
+  width: 40%;
+}
+/* line 44, ../compass/sass/layout/_maincontent.scss */
+article .listing .listingInner .listingInfo .listingInfoDetailsRight {
+  float: left;
+  left: 10%;
+  width: 60%;
+}
+/* line 52, ../compass/sass/layout/_maincontent.scss */
+article .listing .listingContact {
+  width: 104%;
+  clear: both;
+  color: #ffffff;
+  padding: 2% 3%;
+  background: #5e3088 url(/assets/images/expand.svg) center center no-repeat;
+  background-size: contain;
+  margin: 0 -2%;
+}
+/* line 63, ../compass/sass/layout/_maincontent.scss */
 article .adverts {
   width: 100%;
   float: left;
@@ -283,7 +367,7 @@ article .adverts {
   overflow: hidden;
   *zoom: 1;
 }
-/* line 35, ../compass/sass/layout/_maincontent.scss */
+/* line 67, ../compass/sass/layout/_maincontent.scss */
 article .adverts .advert {
   width: 30.57851%;
   float: left;
@@ -293,7 +377,7 @@ article .adverts .advert {
   background: url(/assets/images/adspace-inlisting.gif) top left no-repeat;
   background-size: contain;
 }
-/* line 42, ../compass/sass/layout/_maincontent.scss */
+/* line 74, ../compass/sass/layout/_maincontent.scss */
 article .adverts .advert:last-of-type {
   width: 30.57851%;
   float: right;

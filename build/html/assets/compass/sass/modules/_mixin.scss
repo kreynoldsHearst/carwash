@@ -6,7 +6,7 @@
 	background-repeat: $repeat;
 }
 
-@mixin fontsize($value)
+@mixin fontsize($value, $lineHeight: 1)
 {
 	font-size: $value + 0px;
 	@include breakpoint(0 $mobile) {
@@ -15,6 +15,7 @@
 	@include breakpoint($mobile $tablet-landscape) {
 		font-size: $value / 10 + 0vw; 
 	}
+	line-height: $lineHeight;
 }
 
 @mixin webfonts($webfonts, $weight: normal, $style: normal) {

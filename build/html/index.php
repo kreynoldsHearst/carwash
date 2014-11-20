@@ -69,7 +69,26 @@
             
             <?php for($i=0; $i<4; $i++) { ?>
             <div class="listing">
-            	<div class="listing-photo"><img src="assets/images/listing-photo.jpg" /></div>
+            	<div class="listingInner">
+                    <div class="listing-photo"><img src="assets/images/listing-photo.jpg" /></div>
+                    <div class="listingInfo">
+                    	<h3>Jet Carwash Ltd</h3>
+                        <div class="listingInfoDetailsLeft">
+                            8 Crawley Road, Reading, Berkshire, RG4 7PY<br />
+                           	<b>Monday - Friday</b> 8am - 8pm<br />
+                            <b>Saturday</b> 8am - 4pm<br />
+	                        <b>Sunday</b> 10am - 4pm
+                        </div>
+                        <div class="listingInfoDetailsRight">
+                        	<b>Company Information</b><br />
+                            Lorem ipsum dolor sit amet, consectetur adipi elit. Donec imperdiet ex quis mi eleifend 
+                            luctus. Nulla facilisi. Donec sodalevolutp onec imperdiet ex quis mi elipsum donsectetu.
+                        </div>
+                    </div>
+                </div>
+                <div class="listingContact">
+                	Tel: <b>0118 9077 884</b>
+                </div>
             </div>
             <?php } ?>
             
