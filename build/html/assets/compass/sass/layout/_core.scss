@@ -1,30 +1,153 @@
 
 body {
 	background: $purple-pale;
+	padding: 0px;
+	margin: 0px;
 }
 
 div.body {
 	@include container(978px);
+	padding: 0px 20px;
+	clear: both;
 }
 
-header {
+header, footer {
 	@include span(full); 
-	background: -svg(linear-gradient(120deg, $purple-light, #ffffff));
+	background: -svg(linear-gradient(120deg, $purple-light, $white));
 	background: $purple-light;
 	background-size: 100%;
 	height: 0;
-	padding: 2% 5% 15.5% 5%;
+	padding: 2% 0 18% 0;
+	margin-bottom: 3%; 
 	
-	img {
+	div.body {
+		padding-left: 3%;
+		z-index: 2; 
+	}
+	
+	img.logo {
 		width: 24%;
 		height: auto;
+		margin-bottom: 2.4%;
+	}
+	
+	.navMobile {
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		top: 0;
+		
+		nav {
+			@include span(full);
+			height: 0;
+			padding-bottom: 3%;
+			position: absolute;
+			bottom: 0;  
+			background: $purple-pale;
+			z-index: 2;
+	
+			ul {
+				list-style: none;
+				li {
+					display: inline-block;
+					
+					a:link, a:visited, a:active {
+						display: block;
+						padding: 10px 15px;
+						color: $black;
+						text-decoration: none;
+						
+						&:hover, &.active {
+							background: $purple-dark;
+							color: $white;
+						}
+					}
+				}
+			}
+			
+			div.body {
+				padding: 0 20px;
+			}
+		}
+			
+		.account {
+			position: absolute;
+			top: 40px;
+			right: 20px;
+			@include fontsize(12);
+			z-index: 3;
+			
+			ul {
+				list-style: none;
+				li {
+					display: inline-block;
+					
+					a:link, a:visited, a:active {
+						display: block;
+						width: 120px;
+						padding: 5px 20px;
+						color: $white;
+						text-decoration: none;
+						text-align: center;
+						background: $purple-dark;
+						
+						&.red { background: $red; }
+						&.grey { background: $grey-dark; }
+					}
+				}
+			}
+		}
+	}
+			
+	.accountWelcome {
+		position: absolute;
+		top: 0px;
+		right: 20px;
+	}
+	
+	@include breakpoint($tablet-landscape) {
+		height: 220px;
+		padding-top: 20px;	
+		padding-bottom: 20px;	
+		
+		nav .account {
+			top: -160px;
+		}
 	}
 }
 
-nav {
-	@include span(full last);
-	height: 0;
-	padding-bottom: 5%;
+footer {
+	padding: 4% 0 17.5% 0;
+	margin: 0;
+	
+	img.logo {
+		float: left;
+	}
+			
+	.footerSection {
+		@include span(3 of 12);
+		color: $purple-dark;
+		line-height: 1.3;
+		padding-top: 4%;
+		padding-left: 5%;
+		
+		span {
+			@include fontsize(18);
+		}
+		
+		.social {
+			@include span(full);
+			height: 0;
+			padding-bottom: 20%;
+			padding-top: 5%;
+		}
+	}
+	
+	@include breakpoint($tablet-landscape) {
+		height: 220px;
+		padding-top: 40px;	
+		padding-bottom: 40px;	
+	}
 }
 
 section {
@@ -37,8 +160,14 @@ article {
 	margin-bottom: 6%;
 }
 
-footer {
-	@include span(full);
-	background: $purple-light;
-	padding: 2% 5%;
+div.footerLinks {
+	clear: both;
+	color: $white;
+	background: $purple-mid;
+	height: 0;
+	padding: 1% 0 2% 0;
+	
+	a {
+		margin-left: 2%;
+	}
 }

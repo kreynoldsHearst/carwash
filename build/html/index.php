@@ -8,23 +8,44 @@
 </head>
 
 <body>
+    <header>
+		<div class="body">
+        	<a href="/" title="Go to Homepage"><img class="logo" src="assets/images/carwash-trader.png" /></a>
+                    
+            <div class="accountWelcome">
+                Welcome Kevin!
+            </div>
+        </div>
+        
+        <div class="navMobile">
+            <nav>
+                <div class="body">
+                    <ul>
+                    <li><a class="active" href="index.php">Home</a></li>
+                    <li><a href="">Car Wash For Sale</a></li>
+                    <li><a href="">Car Wash Franchise</a></li>
+                    <li><a href="">Suppliers</a></li>
+                    <li><a href="index.php">Products</a></li>
+                    <li><a href="">Jobs</a></li>
+                    <li><a href="">About Us</a></li>
+                    <li><a href="">Contact Us</a></li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <div class="body">
+            <div class="account">
+            	<ul>
+                <li><a class="red" href="">My CWT</a></li>
+                <li><a href="">Book Advert</a></li>
+                <li><a class="grey" href="">Logout</a></li>
+                </ul>
+            </div>
+            </div>
+        </div>
+    </header>
 
 	<div class="body">
-        <header>
-        	<img src="assets/images/carwash-trader.png" />
-        </header>
-        
-        <nav>
-        	<ul>
-            <li><a class="active" href="">Home</a></li>
-            <li><a href="">Car Wash For Sale</a></li>
-            <li><a href="">Car Wash Franchise</a></li>
-            <li><a href="">Suppliers</a></li>
-            <li><a href="">Products</a></li>
-            <li><a href="">Jobs</a></li>
-            <li><a href="">About Us</a></li>
-            <li><a href="">Contact Us</a></li>
-        </nav>
         
         <h1>Welcome to Carwash Trader</h1>
         
@@ -63,7 +84,13 @@
         </section>
         
         <article>
-        	<div class="filterBox">Filter</div>
+        	<div class="filterBox">
+            	Search Car Wash for Sale
+                <form class="filter">
+                <input type="text" value="eg. Jet Car Wash" />
+                <input type="submit" value="Search" />
+                </form>
+            </div>
             
             <h2>Car Wash for Sale</h2>
             
@@ -98,9 +125,35 @@
             	<div class="advert"></div>
             </div>
         </article>
-        
-        <footer>hello</footer>
     </div>
+        
+    <footer>
+    	<div class="body">
+        	<img class="logo" src="assets/images/carwash-trader.png" />
+            
+            <div class="footerSection">
+                <span>0800 073 4540</span>
+                <a href="mailto:info@carwashtrader.co.uk" title="Email Us">info@carwashtrader.co.uk</a><br />
+                <div class="social"><img src="assets/images/social.gif" /></div>
+            </div>
 
+            <div class="footerSection">
+                69 Elmcroft Crescent<br />
+                London<br />
+                Greater London<br />
+                NW11 9TA
+            </div>
+        </div>
+    </footer>
+        
+    <div class="footerLinks">
+    	<div class="body">
+        	&copy; 2014  Car Wash Trader
+            <a href="" title="Privacy policy">Privacy policy</a>
+            <a href="" title="Cookie policy">Cookie policy</a>
+            <a href="" title="Sitemap">Sitemap</a>
+        </div>
+    </div>
+    
 </body>
 </html>

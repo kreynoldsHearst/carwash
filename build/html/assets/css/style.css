@@ -43,10 +43,15 @@ a:hover {
   text-decoration: underline;
 }
 
+/* line 37, ../compass/sass/base/_reset.scss */
+form input {
+  border: 0;
+}
+
 @font-face {
   font-family: "montserrat-bold";
-  src: url("/assets/fonts/montserrat-bold.eot");
-  src: url("/assets/fonts/montserrat-bold.eot?#iefix") format("embedded-opentype"), url("/assets/fonts/montserrat-bold.woff") format("woff"), url("/assets/fonts/montserrat-bold.ttf") format("truetype"), url("/assets/fonts/montserrat-bold.svg#ywftsvg") format("svg");
+  src: url("../fonts/montserrat-bold.eot");
+  src: url("../fonts/montserrat-bold.eot?#iefix") format("embedded-opentype"), url("../fonts/montserrat-bold.woff") format("woff"), url("../fonts/montserrat-bold.ttf") format("truetype"), url("../fonts/montserrat-bold.svg#ywftsvg") format("svg");
   font-weight: normal;
   font-style: normal;
 }
@@ -57,18 +62,18 @@ h1, h2, h3, b, section .leftmenulist .header, section .filter .header, section .
 
 @font-face {
   font-family: "montserrat-regular";
-  src: url("/assets/fonts/montserrat-regular.eot");
-  src: url("/assets/fonts/montserrat-regular.eot?#iefix") format("embedded-opentype"), url("/assets/fonts/montserrat-regular.woff") format("woff"), url("/assets/fonts/montserrat-regular.ttf") format("truetype"), url("/assets/fonts/montserrat-regular.svg#ywftsvg") format("svg");
+  src: url("../fonts/montserrat-regular.eot");
+  src: url("../fonts/montserrat-regular.eot?#iefix") format("embedded-opentype"), url("../fonts/montserrat-regular.woff") format("woff"), url("../fonts/montserrat-regular.ttf") format("truetype"), url("../fonts/montserrat-regular.svg#ywftsvg") format("svg");
   font-weight: normal;
   font-style: normal;
 }
 /* line 33, ../compass/sass/modules/_mixin.scss */
-body {
+body, input, textarea {
   font-family: "montserrat-regular", "arial";
 }
 
 /* line 1, ../compass/sass/base/_typography.scss */
-body {
+body, input, textarea {
   line-height: 1;
   font-size: 14px;
   line-height: 1;
@@ -77,13 +82,13 @@ body {
 }
 @media (min-width: 0) and (max-width: 480px) {
   /* line 1, ../compass/sass/base/_typography.scss */
-  body {
+  body, input, textarea {
     font-size: 2.33333vw;
   }
 }
 @media (min-width: 480px) and (max-width: 1024px) {
   /* line 1, ../compass/sass/base/_typography.scss */
-  body {
+  body, input, textarea {
     font-size: 1.4vw;
   }
 }
@@ -101,7 +106,7 @@ h1 {
   height: 0;
   padding: 2% 55% 15% 0%;
   margin-bottom: 4%;
-  background: url(/assets/images/header-graphic.png) 70% 0 no-repeat;
+  background: url(../images/header-graphic.png) 70% 0 no-repeat;
   background-size: contain;
 }
 @media (min-width: 0) and (max-width: 480px) {
@@ -174,42 +179,20 @@ b {
   font-weight: normal;
 }
 
-/* line 48, ../compass/sass/base/_typography.scss */
-nav {
-  margin-bottom: 2%;
-}
-/* line 51, ../compass/sass/base/_typography.scss */
-nav ul {
-  display: block;
-  list-style: none;
-}
-/* line 54, ../compass/sass/base/_typography.scss */
-nav ul li {
-  display: inline-block;
-}
-/* line 57, ../compass/sass/base/_typography.scss */
-nav ul li a:link, nav ul li a:visited, nav ul li a:active {
-  display: block;
-  padding: 10px 15px;
-  color: #000000;
-  text-decoration: none;
-}
-/* line 63, ../compass/sass/base/_typography.scss */
-nav ul li a:link:hover, nav ul li a:link.active, nav ul li a:visited:hover, nav ul li a:visited.active, nav ul li a:active:hover, nav ul li a:active.active {
-  background: #5e3088;
-  color: #ffffff;
-}
-
 /* line 2, ../compass/sass/layout/_core.scss */
 body {
   background: #ebe3fd;
+  padding: 0px;
+  margin: 0px;
 }
 
-/* line 6, ../compass/sass/layout/_core.scss */
+/* line 8, ../compass/sass/layout/_core.scss */
 div.body {
   max-width: 978px;
   margin-left: auto;
   margin-right: auto;
+  padding: 0px 20px;
+  clear: both;
 }
 /* line 12, ../../../../../../../../../.rvm/gems/ruby-2.1.2/gems/susy-2.1.3/sass/susy/output/support/_clearfix.scss */
 div.body:after {
@@ -218,8 +201,8 @@ div.body:after {
   clear: both;
 }
 
-/* line 10, ../compass/sass/layout/_core.scss */
-header {
+/* line 14, ../compass/sass/layout/_core.scss */
+header, footer {
   width: 100%;
   float: left;
   margin-left: 0;
@@ -228,24 +211,186 @@ header {
   background: #ccbcf3;
   background-size: 100%;
   height: 0;
-  padding: 2% 5% 15.5% 5%;
+  padding: 2% 0 18% 0;
+  margin-bottom: 3%;
 }
-/* line 18, ../compass/sass/layout/_core.scss */
-header img {
+/* line 23, ../compass/sass/layout/_core.scss */
+header div.body, footer div.body {
+  padding-left: 3%;
+  z-index: 2;
+}
+/* line 28, ../compass/sass/layout/_core.scss */
+header img.logo, footer img.logo {
   width: 24%;
   height: auto;
+  margin-bottom: 2.4%;
 }
-
-/* line 24, ../compass/sass/layout/_core.scss */
-nav {
+/* line 34, ../compass/sass/layout/_core.scss */
+header .navMobile, footer .navMobile {
   width: 100%;
-  float: right;
+  height: 100%;
+  position: absolute;
+  top: 0;
+}
+/* line 40, ../compass/sass/layout/_core.scss */
+header .navMobile nav, footer .navMobile nav {
+  width: 100%;
+  float: left;
+  margin-left: 0;
   margin-right: 0;
   height: 0;
-  padding-bottom: 5%;
+  padding-bottom: 3%;
+  position: absolute;
+  bottom: 0;
+  background: #ebe3fd;
+  z-index: 2;
+}
+/* line 49, ../compass/sass/layout/_core.scss */
+header .navMobile nav ul, footer .navMobile nav ul {
+  list-style: none;
+}
+/* line 51, ../compass/sass/layout/_core.scss */
+header .navMobile nav ul li, footer .navMobile nav ul li {
+  display: inline-block;
+}
+/* line 54, ../compass/sass/layout/_core.scss */
+header .navMobile nav ul li a:link, header .navMobile nav ul li a:visited, header .navMobile nav ul li a:active, footer .navMobile nav ul li a:link, footer .navMobile nav ul li a:visited, footer .navMobile nav ul li a:active {
+  display: block;
+  padding: 10px 15px;
+  color: #000000;
+  text-decoration: none;
+}
+/* line 60, ../compass/sass/layout/_core.scss */
+header .navMobile nav ul li a:link:hover, header .navMobile nav ul li a:link.active, header .navMobile nav ul li a:visited:hover, header .navMobile nav ul li a:visited.active, header .navMobile nav ul li a:active:hover, header .navMobile nav ul li a:active.active, footer .navMobile nav ul li a:link:hover, footer .navMobile nav ul li a:link.active, footer .navMobile nav ul li a:visited:hover, footer .navMobile nav ul li a:visited.active, footer .navMobile nav ul li a:active:hover, footer .navMobile nav ul li a:active.active {
+  background: #5e3088;
+  color: #ffffff;
+}
+/* line 68, ../compass/sass/layout/_core.scss */
+header .navMobile nav div.body, footer .navMobile nav div.body {
+  padding: 0 20px;
+}
+/* line 73, ../compass/sass/layout/_core.scss */
+header .navMobile .account, footer .navMobile .account {
+  position: absolute;
+  top: 40px;
+  right: 20px;
+  font-size: 12px;
+  line-height: 1;
+  z-index: 3;
+}
+@media (min-width: 0) and (max-width: 480px) {
+  /* line 73, ../compass/sass/layout/_core.scss */
+  header .navMobile .account, footer .navMobile .account {
+    font-size: 2vw;
+  }
+}
+@media (min-width: 480px) and (max-width: 1024px) {
+  /* line 73, ../compass/sass/layout/_core.scss */
+  header .navMobile .account, footer .navMobile .account {
+    font-size: 1.2vw;
+  }
+}
+/* line 80, ../compass/sass/layout/_core.scss */
+header .navMobile .account ul, footer .navMobile .account ul {
+  list-style: none;
+}
+/* line 82, ../compass/sass/layout/_core.scss */
+header .navMobile .account ul li, footer .navMobile .account ul li {
+  display: inline-block;
+}
+/* line 85, ../compass/sass/layout/_core.scss */
+header .navMobile .account ul li a:link, header .navMobile .account ul li a:visited, header .navMobile .account ul li a:active, footer .navMobile .account ul li a:link, footer .navMobile .account ul li a:visited, footer .navMobile .account ul li a:active {
+  display: block;
+  width: 120px;
+  padding: 5px 20px;
+  color: #ffffff;
+  text-decoration: none;
+  text-align: center;
+  background: #5e3088;
+}
+/* line 94, ../compass/sass/layout/_core.scss */
+header .navMobile .account ul li a:link.red, header .navMobile .account ul li a:visited.red, header .navMobile .account ul li a:active.red, footer .navMobile .account ul li a:link.red, footer .navMobile .account ul li a:visited.red, footer .navMobile .account ul li a:active.red {
+  background: #cb2b34;
+}
+/* line 95, ../compass/sass/layout/_core.scss */
+header .navMobile .account ul li a:link.grey, header .navMobile .account ul li a:visited.grey, header .navMobile .account ul li a:active.grey, footer .navMobile .account ul li a:link.grey, footer .navMobile .account ul li a:visited.grey, footer .navMobile .account ul li a:active.grey {
+  background: #666;
+}
+/* line 102, ../compass/sass/layout/_core.scss */
+header .accountWelcome, footer .accountWelcome {
+  position: absolute;
+  top: 0px;
+  right: 20px;
+}
+@media (min-width: 1024px) {
+  /* line 14, ../compass/sass/layout/_core.scss */
+  header, footer {
+    height: 220px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+  /* line 113, ../compass/sass/layout/_core.scss */
+  header nav .account, footer nav .account {
+    top: -160px;
+  }
 }
 
-/* line 30, ../compass/sass/layout/_core.scss */
+/* line 119, ../compass/sass/layout/_core.scss */
+footer {
+  padding: 4% 0 17.5% 0;
+  margin: 0;
+}
+/* line 123, ../compass/sass/layout/_core.scss */
+footer img.logo {
+  float: left;
+}
+/* line 127, ../compass/sass/layout/_core.scss */
+footer .footerSection {
+  width: 22.69939%;
+  float: left;
+  margin-right: 3.06748%;
+  color: #5e3088;
+  line-height: 1.3;
+  padding-top: 4%;
+  padding-left: 5%;
+}
+/* line 134, ../compass/sass/layout/_core.scss */
+footer .footerSection span {
+  font-size: 18px;
+  line-height: 1;
+}
+@media (min-width: 0) and (max-width: 480px) {
+  /* line 134, ../compass/sass/layout/_core.scss */
+  footer .footerSection span {
+    font-size: 3vw;
+  }
+}
+@media (min-width: 480px) and (max-width: 1024px) {
+  /* line 134, ../compass/sass/layout/_core.scss */
+  footer .footerSection span {
+    font-size: 1.8vw;
+  }
+}
+/* line 138, ../compass/sass/layout/_core.scss */
+footer .footerSection .social {
+  width: 100%;
+  float: left;
+  margin-left: 0;
+  margin-right: 0;
+  height: 0;
+  padding-bottom: 20%;
+  padding-top: 5%;
+}
+@media (min-width: 1024px) {
+  /* line 119, ../compass/sass/layout/_core.scss */
+  footer {
+    height: 220px;
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+}
+
+/* line 153, ../compass/sass/layout/_core.scss */
 section {
   width: 22.69939%;
   float: left;
@@ -253,7 +398,7 @@ section {
   margin-bottom: 6%;
 }
 
-/* line 35, ../compass/sass/layout/_core.scss */
+/* line 158, ../compass/sass/layout/_core.scss */
 article {
   width: 74.23313%;
   float: right;
@@ -261,14 +406,17 @@ article {
   margin-bottom: 6%;
 }
 
-/* line 40, ../compass/sass/layout/_core.scss */
-footer {
-  width: 100%;
-  float: left;
-  margin-left: 0;
-  margin-right: 0;
-  background: #ccbcf3;
-  padding: 2% 5%;
+/* line 163, ../compass/sass/layout/_core.scss */
+div.footerLinks {
+  clear: both;
+  color: #ffffff;
+  background: #5d4b9d;
+  height: 0;
+  padding: 1% 0 2% 0;
+}
+/* line 170, ../compass/sass/layout/_core.scss */
+div.footerLinks a {
+  margin-left: 2%;
 }
 
 /* line 3, ../compass/sass/layout/_maincontent.scss */
@@ -282,7 +430,26 @@ article .filterBox {
   background: #5e3088;
   margin-bottom: 4%;
 }
-/* line 11, ../compass/sass/layout/_maincontent.scss */
+/* line 10, ../compass/sass/layout/_maincontent.scss */
+article .filterBox form.filter {
+  margin-top: 2%;
+}
+/* line 13, ../compass/sass/layout/_maincontent.scss */
+article .filterBox form.filter input[type="text"] {
+  width: 100%;
+  padding: 2%;
+  color: #999;
+  margin-bottom: 2%;
+}
+/* line 20, ../compass/sass/layout/_maincontent.scss */
+article .filterBox form.filter input[type="submit"] {
+  background: #cb2b34;
+  color: #ffffff;
+  padding: 2% 6%;
+  float: right;
+  -webkit-appearance: none;
+}
+/* line 30, ../compass/sass/layout/_maincontent.scss */
 article .listing {
   width: 100%;
   float: left;
@@ -292,7 +459,7 @@ article .listing {
   background: #ccbcf3;
   margin-bottom: 4%;
 }
-/* line 17, ../compass/sass/layout/_maincontent.scss */
+/* line 36, ../compass/sass/layout/_maincontent.scss */
 article .listing .listingInner {
   width: 100%;
   float: left;
@@ -304,7 +471,7 @@ article .listing .listingInner {
   *zoom: 1;
   margin-bottom: 2%;
 }
-/* line 24, ../compass/sass/layout/_maincontent.scss */
+/* line 43, ../compass/sass/layout/_maincontent.scss */
 article .listing .listingInner .listing-photo {
   width: 19.00826%;
   float: left;
@@ -312,12 +479,12 @@ article .listing .listingInner .listing-photo {
   height: 0;
   padding-bottom: 19.00826426%;
 }
-/* line 29, ../compass/sass/layout/_maincontent.scss */
+/* line 48, ../compass/sass/layout/_maincontent.scss */
 article .listing .listingInner .listing-photo img {
   width: 100%;
   height: auto;
 }
-/* line 35, ../compass/sass/layout/_maincontent.scss */
+/* line 54, ../compass/sass/layout/_maincontent.scss */
 article .listing .listingInner .listingInfo {
   font-size: 11px;
   line-height: 1.2;
@@ -326,39 +493,39 @@ article .listing .listingInner .listingInfo {
   margin-right: 4.13223%;
 }
 @media (min-width: 0) and (max-width: 480px) {
-  /* line 35, ../compass/sass/layout/_maincontent.scss */
+  /* line 54, ../compass/sass/layout/_maincontent.scss */
   article .listing .listingInner .listingInfo {
     font-size: 1.83333vw;
   }
 }
 @media (min-width: 480px) and (max-width: 1024px) {
-  /* line 35, ../compass/sass/layout/_maincontent.scss */
+  /* line 54, ../compass/sass/layout/_maincontent.scss */
   article .listing .listingInner .listingInfo {
     font-size: 1.1vw;
   }
 }
-/* line 39, ../compass/sass/layout/_maincontent.scss */
+/* line 58, ../compass/sass/layout/_maincontent.scss */
 article .listing .listingInner .listingInfo .listingInfoDetailsLeft {
   float: left;
   width: 40%;
 }
-/* line 44, ../compass/sass/layout/_maincontent.scss */
+/* line 63, ../compass/sass/layout/_maincontent.scss */
 article .listing .listingInner .listingInfo .listingInfoDetailsRight {
   float: left;
   left: 10%;
   width: 60%;
 }
-/* line 52, ../compass/sass/layout/_maincontent.scss */
+/* line 71, ../compass/sass/layout/_maincontent.scss */
 article .listing .listingContact {
   width: 104%;
   clear: both;
   color: #ffffff;
   padding: 2% 3%;
-  background: #5e3088 url(/assets/images/expand.svg) center center no-repeat;
+  background: #5e3088 url(../images/expand.svg) center center no-repeat;
   background-size: contain;
   margin: 0 -2%;
 }
-/* line 63, ../compass/sass/layout/_maincontent.scss */
+/* line 82, ../compass/sass/layout/_maincontent.scss */
 article .adverts {
   width: 100%;
   float: left;
@@ -367,17 +534,17 @@ article .adverts {
   overflow: hidden;
   *zoom: 1;
 }
-/* line 67, ../compass/sass/layout/_maincontent.scss */
+/* line 86, ../compass/sass/layout/_maincontent.scss */
 article .adverts .advert {
   width: 30.57851%;
   float: left;
   margin-right: 4.13223%;
   height: 0;
   padding-bottom: 30.5785124%;
-  background: url(/assets/images/adspace-inlisting.gif) top left no-repeat;
+  background: url(../images/adspace-inlisting.gif) top left no-repeat;
   background-size: contain;
 }
-/* line 74, ../compass/sass/layout/_maincontent.scss */
+/* line 93, ../compass/sass/layout/_maincontent.scss */
 article .adverts .advert:last-of-type {
   width: 30.57851%;
   float: right;
@@ -408,24 +575,25 @@ section .leftmenulist ul li, section .filter ul li, section .jobalerts ul li, se
 }
 /* line 27, ../compass/sass/layout/_leftmenu.scss */
 section .leftmenulist .footer, section .filter .footer, section .jobalerts .footer, section .reviews .footer {
-  background: #ccbcf3;
+  background: #ccbcf3 url(../images/icon-register.svg) top left no-repeat;
+  background-size: contain;
   color: #fff;
   padding: 4.5% 4.5% 4.5% 22.5%;
   top: -1px;
 }
-/* line 38, ../compass/sass/layout/_leftmenu.scss */
+/* line 39, ../compass/sass/layout/_leftmenu.scss */
 section .filter .header {
-  background-image: url(/assets/images/icon-filter.svg);
+  background-image: url(../images/icon-filter.svg);
 }
-/* line 43, ../compass/sass/layout/_leftmenu.scss */
+/* line 44, ../compass/sass/layout/_leftmenu.scss */
 section .jobalerts .header {
-  background-image: url(/assets/images/icon-jobalerts.svg);
+  background-image: url(../images/icon-jobalerts.svg);
 }
-/* line 48, ../compass/sass/layout/_leftmenu.scss */
+/* line 49, ../compass/sass/layout/_leftmenu.scss */
 section .reviews .header {
-  background-image: url(/assets/images/icon-reviews.svg);
+  background-image: url(../images/icon-reviews.svg);
 }
-/* line 51, ../compass/sass/layout/_leftmenu.scss */
+/* line 52, ../compass/sass/layout/_leftmenu.scss */
 section .advert {
   width: 100%;
   float: left;
@@ -433,7 +601,7 @@ section .advert {
   margin-right: 0;
   margin-bottom: 6%;
 }
-/* line 54, ../compass/sass/layout/_leftmenu.scss */
+/* line 55, ../compass/sass/layout/_leftmenu.scss */
 section .advert img {
   width: 100%;
   height: auto;

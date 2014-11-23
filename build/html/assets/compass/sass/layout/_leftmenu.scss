@@ -25,7 +25,8 @@ section {
 		}
 		
 		.footer {
-			background: $purple-light;
+			background: $purple-light url(../images/icon-register.svg) top left no-repeat;
+			background-size: contain;
 			color: #fff;
 			@extend %montserrat-bold-webfont;
 			padding: 4.5% 4.5% 4.5% 22.5%;
@@ -35,17 +36,17 @@ section {
 	
 	.filter {
 		@extend .leftmenulist;
-		.header { background-image: url(/assets/images/icon-filter.svg); }
+		.header { background-image: url(../images/icon-filter.svg); }
 	}
 	
 	.jobalerts {
 		@extend .leftmenulist;
-		.header { background-image: url(/assets/images/icon-jobalerts.svg); }
+		.header { background-image: url(../images/icon-jobalerts.svg); }
 	}
 	
 	.reviews {
 		@extend .leftmenulist;
-		.header { background-image: url(/assets/images/icon-reviews.svg); }
+		.header { background-image: url(../images/icon-reviews.svg); }
 	}
 	
 	.advert {

@@ -1,4 +1,4 @@
-body {
+body, input, textarea {
 	@extend %montserrat-regular-webfont;
 	line-height: 1;
 	@include fontsize(14);
@@ -16,12 +16,12 @@ h1 {
 	height: 0;
 	padding: 2% 55% 15% 0%;
 	margin-bottom: 4%;
-	background: url(/assets/images/header-graphic.png) 70% 0 no-repeat;
+	background: url(../images/header-graphic.png) 70% 0 no-repeat;
 	background-size: contain;
 }
 
 h2 {
-	color: #ffffff;
+	color: $white;
 	@extend %montserrat-bold-webfont;
 	@include fontsize(24);
 	font-weight: normal;
@@ -43,28 +43,4 @@ h3 {
 b {
 	font-weight: normal;
 	@extend %montserrat-bold-webfont;
-}
-
-nav {
-	margin-bottom: 2%;
-	
-	ul {
-		display: block;
-		list-style: none;
-		li {
-			display: inline-block;
-			
-			a:link, a:visited, a:active {
-				display: block;
-				padding: 10px 15px;
-				color: #000000;
-				text-decoration: none;
-				
-				&:hover, &.active {
-					background: $purple-dark;
-					color: #ffffff;
-				}
-			}
-		}
-	}
 }

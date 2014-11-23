@@ -2,10 +2,29 @@
 article {
 	.filterBox {
 		@include span(full);
-		color: #ffffff;
+		color: $white;
 		padding: 2.5%;
 		background: $purple-dark;
 		margin-bottom: 4%; 
+		
+		form.filter {
+			margin-top: 2%;
+			
+			input[type="text"] {
+				width: 100%;
+				padding: 2%;
+				color: $grey-mid;
+				margin-bottom: 2%;
+			}
+			
+			input[type="submit"] {
+				background: $red;
+				color: $white;
+				padding: 2% 6%;
+				float: right;
+				-webkit-appearance: none;
+			}
+		}
 	}
 	
 	.listing {
@@ -16,7 +35,7 @@ article {
 		
 		.listingInner {
 			@include span(full);
-			background: #ffffff;
+			background: $white;
 			padding: 2%;
 			@include clearfix;
 			margin-bottom: 2%;
@@ -52,9 +71,9 @@ article {
 		.listingContact {
 			width: 104%;
 			clear: both;
-			color: #ffffff;
+			color: $white;
 			padding: 2% 3%;
-			background: $purple-dark url(/assets/images/expand.svg) center center no-repeat;
+			background: $purple-dark url(../images/expand.svg) center center no-repeat;
 			background-size: contain;
 			margin: 0 -2%;
 		}
@@ -68,7 +87,7 @@ article {
 			@include span(3 of 9);
 			height: 0;
 			padding-bottom: 30.5785124%;
-			background: url(/assets/images/adspace-inlisting.gif) top left no-repeat;
+			background: url(../images/adspace-inlisting.gif) top left no-repeat;
 			background-size: contain;
 
 			&:last-of-type {
