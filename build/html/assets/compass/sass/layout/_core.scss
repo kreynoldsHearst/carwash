@@ -1,14 +1,15 @@
 
 body {
-	background: $purple-pale;
+	background: $grey-pale;
 	padding: 0px;
 	margin: 0px;
 }
 
 div.body {
 	@include container(978px);
-	padding: 0px 20px;
+	padding: 0px 1.5%;
 	clear: both;
+	overflow: hidden;
 }
 
 header, footer {
@@ -17,33 +18,27 @@ header, footer {
 	background: $purple-light;
 	background-size: 100%;
 	height: 0;
-	padding: 2% 0 18% 0;
-	margin-bottom: 3%; 
-	
-	div.body {
-		padding-left: 3%;
-		z-index: 2; 
-	}
+	padding: 2% 0 16% 0;
+	margin-bottom: 6%; 
 	
 	img.logo {
 		width: 24%;
 		height: auto;
-		margin-bottom: 2.4%;
+		margin-left: 2%;
+		margin-bottom: 5%;
 	}
 	
 	.navMobile {
-		width: 100%;
+		width: 98%;
 		height: 100%;
 		position: absolute;
 		top: 0;
 		
 		nav {
-			@include span(full);
 			height: 0;
 			padding-bottom: 3%;
-			position: absolute;
 			bottom: 0;  
-			background: $purple-pale;
+			position: absolute;
 			z-index: 2;
 	
 			ul {
@@ -64,28 +59,39 @@ header, footer {
 					}
 				}
 			}
+		}
 			
-			div.body {
-				padding: 0 20px;
-			}
+		.search {
+			position: absolute;
+			width: 10%;
+			height: 10%;
+			bottom: 0;
+			right: 2%;
+			background: url(../images/icon-search.svg) top right no-repeat;
+			background-size: contain;
 		}
 			
 		.account {
 			position: absolute;
-			top: 40px;
-			right: 20px;
+			top: 10%;
+			right: -1.5%;
 			@include fontsize(12);
 			z-index: 3;
+			width: 40%;
 			
 			ul {
+				width: 100%;
 				list-style: none;
+				display: block;
+				
 				li {
 					display: inline-block;
+					width: 30%;
 					
 					a:link, a:visited, a:active {
 						display: block;
-						width: 120px;
-						padding: 5px 20px;
+						width: 100%;
+						padding: 4% 5%;
 						color: $white;
 						text-decoration: none;
 						text-align: center;
@@ -102,11 +108,11 @@ header, footer {
 	.accountWelcome {
 		position: absolute;
 		top: 0px;
-		right: 20px;
+		right: 2%;
 	}
 	
 	@include breakpoint($tablet-landscape) {
-		height: 220px;
+		height: 180px;
 		padding-top: 20px;	
 		padding-bottom: 20px;	
 		

@@ -17,10 +17,14 @@ section {
 		
 		ul {
 			list-style: none;
+			color: $purple-dark;
 			
 			li {
+				height: 100%;
 				padding: 4.5%;
 				border-bottom: 1px solid $purple-dark;
+				background: url(../images/arrow.svg) center right no-repeat;
+				background-size: contain;
 			}
 		}
 		
@@ -29,7 +33,7 @@ section {
 			background-size: contain;
 			color: #fff;
 			@extend %montserrat-bold-webfont;
-			padding: 4.5% 4.5% 4.5% 22.5%;
+			padding: 2.5% 4.5% 2.5% 22.5%;
 			top: -1px;
 		}
 	}

@@ -8,6 +8,7 @@ article {
 		margin-bottom: 4%; 
 		
 		form.filter {
+				@include fontsize(12);
 			margin-top: 2%;
 			
 			input[type="text"] {
@@ -24,18 +25,23 @@ article {
 				float: right;
 				-webkit-appearance: none;
 			}
+			
+			label {
+				@include fontsize(12);
+			}
 		}
 	}
 	
 	.listing {
 		@include span(full);
 		padding: 2%;
-		background: $purple-light;
+		background: $purple-pale url(../images/background-listing.gif) top left no-repeat;
+		background-size: 100% 100%;
 		margin-bottom: 4%;
 		
 		.listingInner {
 			@include span(full);
-			background: $white;
+			background: $white url(../images/icon-rating.svg) top right no-repeat; 
 			padding: 2%;
 			@include clearfix;
 			margin-bottom: 2%;
@@ -54,17 +60,33 @@ article {
 			.listingInfo {
 				@include fontsize(11, 1.2);
 				@include span(6 of 9);
+				@include clearfix;
 				
 				.listingInfoDetailsLeft {
 					float: left;
 					width: 40%;
+					margin-right: 10%;
 				}
 				
 				.listingInfoDetailsRight {
 					float: left;
-					left: 10%;
-					width: 60%;
+					width: 50%;
 				}
+			}
+				
+			.listingInfoReadMore {
+				position: absolute;
+				padding-left: 3%;
+				right: 2%;
+				bottom: 5%;
+				width: 13%;
+				background: url(../images/icon-readmore.svg) top left no-repeat;
+				background-size: contain;
+				clear: both;
+				@include fontsize(12);
+				color: $purple-dark;
+				text-decoration: underline;
+				cursor: pointer;
 			}
 		}
 			
@@ -72,10 +94,22 @@ article {
 			width: 104%;
 			clear: both;
 			color: $white;
+			background: $purple-dark;
 			padding: 2% 3%;
-			background: $purple-dark url(../images/expand.svg) center center no-repeat;
-			background-size: contain;
 			margin: 0 -2%;
+			
+			.listingWebsite {
+				position: absolute;
+				right: 1%;
+				top: 1%;
+				height: 60%;
+				width: 23%;
+				padding-left: 9%;
+				margin-top: 1%;
+				padding-top: 1%;
+				background: url(../images/icon-website.svg) 10px 10% no-repeat;
+				background-size: contain;
+			}
 		}
 	}
 	

@@ -10,16 +10,14 @@
 <body>
     <header>
 		<div class="body">
-        	<a href="/" title="Go to Homepage"><img class="logo" src="assets/images/carwash-trader.png" /></a>
+        	<a href="/" title="Go to Homepage"><img class="logo" src="assets/images/carwash-trader.svg" /></a>
                     
             <div class="accountWelcome">
                 Welcome Kevin!
             </div>
-        </div>
         
-        <div class="navMobile">
-            <nav>
-                <div class="body">
+	        <div class="navMobile">
+                <nav>
                     <ul>
                     <li><a class="active" href="index.php">Home</a></li>
                     <li><a href="">Car Wash For Sale</a></li>
@@ -30,17 +28,19 @@
                     <li><a href="">About Us</a></li>
                     <li><a href="">Contact Us</a></li>
                     </ul>
+                </nav>
+                
+                <div class="account">
+                    <ul>
+                    <li><a class="red" href="">My CWT</a></li>
+                    <li><a href="">Book Advert</a></li>
+                    <li><a class="grey" href="">Logout</a></li>
+                    </ul>
                 </div>
-            </nav>
-            
-            <div class="body">
-            <div class="account">
-            	<ul>
-                <li><a class="red" href="">My CWT</a></li>
-                <li><a href="">Book Advert</a></li>
-                <li><a class="grey" href="">Logout</a></li>
-                </ul>
-            </div>
+                
+                <div class="search">
+                
+                </div>
             </div>
         </div>
     </header>
@@ -88,6 +88,11 @@
             	Search Car Wash for Sale
                 <form class="filter">
                 <input type="text" value="eg. Jet Car Wash" />
+                Order By: 
+                <input type="radio" name="orderby" id="order_name" value="Name" /><label for="order_name">Name</label>
+                <input type="radio" name="orderby" id="order_price" value="Price" /><label for="order_price">Price</label>
+                <input type="radio" name="orderby" id="order_location" value="Location" /><label for="order_location">Location</label>
+                <input type="radio" name="orderby" id="order_postcode" value="Postcode" /><label for="order_postcode">Postcode</label>
                 <input type="submit" value="Search" />
                 </form>
             </div>
@@ -112,9 +117,11 @@
                             luctus. Nulla facilisi. Donec sodalevolutp onec imperdiet ex quis mi elipsum donsectetu.
                         </div>
                     </div>
+                    <div class="listingInfoReadMore">Read More</div>
                 </div>
                 <div class="listingContact">
                 	Tel: <b>0118 9077 884</b>
+                    <div class="listingWebsite">Visit Website</div>
                 </div>
             </div>
             <?php } ?>
@@ -129,7 +136,7 @@
         
     <footer>
     	<div class="body">
-        	<img class="logo" src="assets/images/carwash-trader.png" />
+        	<img class="logo" src="assets/images/carwash-trader.svg" />
             
             <div class="footerSection">
                 <span>0800 073 4540</span>
