@@ -14,15 +14,37 @@
  * @package WordPress
  */
 
+
+//*** OVERRIDE DB SERVER SETTINGS ***//
+
+/** Sanitize SERVER_NAME, just in case **/
+$server_name = htmlentities( $_SERVER['SERVER_NAME'] );
+
+/** Custom WordPress core location **/
+define('WP_SITEURL', 'http://' . $server_name);
+
+/** Custom home location **/
+define('WP_HOME', 'http://' . $server_name);
+
+/** Custom wp-content location settings **/
+define('WP_CONTENT_DIR', $_SERVER['DOCUMENT_ROOT'] . '/wp-content');
+define('WP_CONTENT_URL', 'http://' . $server_name . '/wp-content');
+define('WP_PLUGIN_DIR', $_SERVER['DOCUMENT_ROOT'] . '/wp-content/plugins');
+define('WP_PLUGIN_URL', 'http://' . $server_name . '/wp-content/plugins');
+define('PLUGINDIR', $_SERVER['DOCUMENT_ROOT'] . '/wp-content/plugins');
+
+
+
+
 // ** MySQL settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
-define('DB_NAME', 'carwasht_wp95');
+define('DB_NAME', 'carwashd_cwtdev');
 
 /** MySQL database username */
-define('DB_USER', 'carwasht_wp95');
+define('DB_USER', 'carwashd');
 
 /** MySQL database password */
-define('DB_PASSWORD', 'SXP9S4]9C]');
+define('DB_PASSWORD', '!!fg45/34Tr*');
 
 /** MySQL hostname */
 define('DB_HOST', 'localhost');
